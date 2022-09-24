@@ -29,119 +29,72 @@ MultiLineMacro:
 
 Directive: '#' ~ [\n]* -> channel (HIDDEN);
 /*Keywords*/
-Void :'void';
-Bool :'bool';
-Int :'int';
-String :'string';
-New :'new';
-Class :'class';
-Null :'null';
-True :'true';
-False :'false';
-This :'this';
-If :'if';
-Else :'else';
-For :'for';
-While :'while';
-Break :'break';
-Continue :'continue';
-Return :'return';
+Void: 'void';
+Bool: 'bool';
+Int: 'int';
+String: 'string';
+New: 'new';
+Class: 'class';
+Null: 'null';
+True: 'true';
+False: 'false';
+This: 'this';
+If: 'if';
+Else: 'else';
+For: 'for';
+While: 'while';
+Break: 'break';
+Continue: 'continue';
+Return: 'return';
 
 /*Operators*/
-
-LeftParen: '(';
-
-RightParen: ')';
-
-LeftBracket: '[';
-
-RightBracket: ']';
-
-LeftBrace: '{';
-
-RightBrace: '}';
-
 Plus: '+';
-
 Minus: '-';
-
 Star: '*';
-
 Div: '/';
-
 Mod: '%';
 
-Caret: '^';
+Greater: '>';
+Less: '<';
+GreaterEqual: '>=';
+LessEqual: '<=';
+NotEqual: '!=';
+Equal: '==';
 
+AndAnd: '&&';
+OrOr: '||';
+Not: '!';
+
+RightShift: '>>';
+LeftShift: '<<';
 And: '&';
-
 Or: '|';
-
+Caret: '^';
 Tilde: '~';
-
-Not: '!' | 'not';
 
 Assign: '=';
 
-Less: '<';
-
-Greater: '>';
-
-PlusAssign: '+=';
-
-MinusAssign: '-=';
-
-StarAssign: '*=';
-
-DivAssign: '/=';
-
-ModAssign: '%=';
-
-XorAssign: '^=';
-
-AndAssign: '&=';
-
-OrAssign: '|=';
-
-LeftShiftAssign: '<<=';
-
-RightShiftAssign: '>>=';
-
-Equal: '==';
-
-NotEqual: '!=';
-
-LessEqual: '<=';
-
-GreaterEqual: '>=';
-
-AndAnd: '&&' | 'and';
-
-OrOr: '||' | 'or';
-
 PlusPlus: '++';
-
 MinusMinus: '--';
-
-Comma: ',';
-
-ArrowStar: '->*';
-
-Arrow: '->';
-
-Question: '?';
-
-Colon: ':';
-
-Doublecolon: '::';
-
-Semi: ';';
 
 Dot: '.';
 
-DotStar: '.*';
+LeftBracket: '[';
+RightBracket: ']';
 
-Ellipsis: '...';
+LeftParen: '(';
+RightParen: ')';
+
+Comma: ',';
+Semi: ';';
+LeftBrace: '{';
+RightBrace: '}';
+
+Space: ' ';
+Eol: '\n';
+Tab: '\t';
+Comment: '//';
+Quotation: '"';
 
 fragment Hexquad:
 	HEXADECIMALDIGIT HEXADECIMALDIGIT HEXADECIMALDIGIT HEXADECIMALDIGIT;
