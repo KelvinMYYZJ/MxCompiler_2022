@@ -5,8 +5,8 @@ options {
 prog: (definition)* EOF;
 definition: funcDef | varDef | classDef;
 varDef:
-	typeName Identifier (Equal expression)? (
-		Comma Identifier (Equal expression)?
+	typeName Identifier (Assign expression)? (
+		Comma Identifier (Assign expression)?
 	)*? Semi;
 
 classDef: Class Identifier classBody Semi;
@@ -19,9 +19,8 @@ argList:
 	LeftParen (expression (Comma expression)*?)? RightParen;
 constructFuncDef: Identifier LeftParen RightParen funcBody;
 
-typeName:
-	basicType (LeftBracket RightBracket)*;
-basicType: Int | Bool | String | Void|Identifier;
+typeName: basicType (LeftBracket RightBracket)*;
+basicType: Int | Bool | String | Void | Identifier;
 funcBody: LeftBrace funcStmt* RightBrace;
 expression: assignExpr | orOrExpr;
 orOrExpr: andAndExpr (OrOr andAndExpr)*;
@@ -47,10 +46,12 @@ primaryExpr:
 	| This
 	| LeftParen expression RightParen
 	| Identifier /* todo? */;
-newExpr: New typeName arrayIndex;
-newExprTest: newExpr EOF;
+newExpr: newArrayExpr | newObjExpr;
+newArrayExpr:
+	New basicType (arrayIndex (LeftBracket RightBracket)*);
+newObjExpr: New basicType (LeftParen RightParen)?;
 
-arrayIndex: LeftBrace expression RightBrace;
+arrayIndex: LeftBracket expression RightBracket;
 
 equalOp: Equal | NotEqual;
 relationOp: Less | Greater | LessEqual | GreaterEqual;
@@ -60,7 +61,12 @@ multiOp: Star | Div | Mod;
 prefixUnaryOp: PlusPlus | MinusMinus | Not | Tilde | Minus;
 suffixUnaryOp: PlusPlus | MinusMinus;
 
-literal: IntLiteral | BoolLiteral | NullLiteral | StringLiteral;
+literal:
+	IntLiteral
+	| True
+	| False
+	| NullLiteral
+	| StringLiteral;
 funcStmt:
 	varDef
 	| ifStmt
@@ -75,13 +81,12 @@ elseStmt: Else block;
 whileStmt: While condition block;
 forStmt: For forCondition block;
 memberStmt: varDef | constructFuncDef | funcDef;
-assignExpr: leftValue Equal expression;
+assignExpr: leftValue Assign expression;
 leftValue:
 	Identifier
 	| leftValue arrayIndex
 	| leftValue Dot Identifier /*todo? */;
 
-exprTest: expression EOF;
 condition: LeftParen expression RightParen;
 forCondition:
 	LeftParen Semi expression Semi expression RightParen;

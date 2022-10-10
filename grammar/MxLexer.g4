@@ -78,11 +78,10 @@ fragment IdentifierChars: Alphabet | Digit | Underline;
 Identifier: Alphabet IdentifierChars*;
 
 /*Literal*/
-BoolLiteral: True | False;
+// BoolLiteral: False_ | True_;
 IntLiteral: '0' | NonZeroDigit Digit*;
 fragment Escapesequence: '\\n' | '\\"' | '\\\\';
 fragment Schar: ~ ["\\\n\r]| Escapesequence;
 StringLiteral: '"' Schar* '"';
 NullLiteral: Null;
-
 
