@@ -22,7 +22,8 @@ constructFuncDef: Identifier LeftParen RightParen funcBody;
 typeName: basicType (LeftBracket RightBracket)*;
 basicType: Int | Bool | String | Void | Identifier;
 funcBody: LeftBrace funcStmt* RightBrace;
-expression: assignExpr | orOrExpr;
+expression: assignExpr;
+assignExpr: orOrExpr ( Assign orOrExpr)?;
 orOrExpr: andAndExpr (OrOr andAndExpr)*;
 andAndExpr: orExpr (AndAnd orExpr)*;
 orExpr: xorExpr (Or xorExpr)*;
@@ -48,7 +49,7 @@ primaryExpr:
 	| Identifier /* todo? */;
 newExpr: newArrayExpr | newObjExpr;
 newArrayExpr:
-	New basicType (arrayIndex (LeftBracket RightBracket)*);
+	New basicType (arrayIndex+ (LeftBracket RightBracket)*);
 newObjExpr: New basicType (LeftParen RightParen)?;
 
 arrayIndex: LeftBracket expression RightBracket;
@@ -75,13 +76,14 @@ funcStmt:
 	| returnStmt
 	| breakStmt
 	| continueStmt
-	| exprStmt;
+	| exprStmt
+	| multiStmtBlock
+	| blankStmt;
 ifStmt: If condition block elseStmt?;
 elseStmt: Else block;
 whileStmt: While condition block;
 forStmt: For forCondition block;
 memberStmt: varDef | constructFuncDef | funcDef;
-assignExpr: leftValue Assign expression;
 leftValue:
 	Identifier
 	| leftValue arrayIndex
@@ -89,7 +91,7 @@ leftValue:
 
 condition: LeftParen expression RightParen;
 forCondition:
-	LeftParen Semi expression Semi expression RightParen;
+	LeftParen expression? Semi expression? Semi expression? RightParen;
 block: multiStmtBlock | funcStmt;
 multiStmtBlock: LeftBrace funcStmt*? RightBrace;
 
@@ -97,3 +99,4 @@ returnStmt: Return expression? Semi;
 breakStmt: Break Semi;
 continueStmt: Continue Semi;
 exprStmt: expression Semi;
+blankStmt: Semi;
