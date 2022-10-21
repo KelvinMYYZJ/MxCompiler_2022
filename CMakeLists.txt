@@ -5,7 +5,7 @@ set(CMAKE_BUILD_TYPE "Debug")
 add_compile_options(-pthread)
 add_link_options(-pthread)
 # ------------------the following is to be modified----------------------------
-set(lib_dir_names Frontend misc)
+set(lib_dir_names Parser misc listener vistor AST )
 set(program_names code)
 
 # -----------------------------------------------------------------------------

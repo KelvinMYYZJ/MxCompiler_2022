@@ -18,11 +18,11 @@ public:
     Mod = 21, Greater = 22, Less = 23, GreaterEqual = 24, LessEqual = 25, 
     NotEqual = 26, Equal = 27, AndAnd = 28, OrOr = 29, Not = 30, RightShift = 31, 
     LeftShift = 32, And = 33, Or = 34, Caret = 35, Tilde = 36, Assign = 37, 
-    PlusPlus = 38, MinusMinus = 39, Dot = 40, LeftBracket = 41, RightBracket = 42, 
-    LeftParen = 43, RightParen = 44, Comma = 45, Semi = 46, LeftBrace = 47, 
-    RightBrace = 48, LineComment = 49, BlockComment = 50, Space = 51, Tab = 52, 
-    Eol = 53, Comment = 54, Identifier = 55, IntLiteral = 56, StringLiteral = 57, 
-    NullLiteral = 58
+    PlusPlus = 38, MinusMinus = 39, Dot = 40, Arrow = 41, LeftBracket = 42, 
+    RightBracket = 43, LeftParen = 44, RightParen = 45, Comma = 46, Semi = 47, 
+    LeftBrace = 48, RightBrace = 49, LineComment = 50, BlockComment = 51, 
+    Space = 52, Tab = 53, Eol = 54, Comment = 55, Identifier = 56, IntLiteral = 57, 
+    StringLiteral = 58, NullLiteral = 59
   };
 
   explicit MxLexer(antlr4::CharStream *input);

@@ -97,6 +97,9 @@ public:
   virtual void enterPrimaryExpr(MxParser::PrimaryExprContext * /*ctx*/) override { }
   virtual void exitPrimaryExpr(MxParser::PrimaryExprContext * /*ctx*/) override { }
 
+  virtual void enterLambdaExpr(MxParser::LambdaExprContext * /*ctx*/) override { }
+  virtual void exitLambdaExpr(MxParser::LambdaExprContext * /*ctx*/) override { }
+
   virtual void enterNewExpr(MxParser::NewExprContext * /*ctx*/) override { }
   virtual void exitNewExpr(MxParser::NewExprContext * /*ctx*/) override { }
 

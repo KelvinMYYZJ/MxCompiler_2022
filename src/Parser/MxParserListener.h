@@ -95,6 +95,9 @@ public:
   virtual void enterPrimaryExpr(MxParser::PrimaryExprContext *ctx) = 0;
   virtual void exitPrimaryExpr(MxParser::PrimaryExprContext *ctx) = 0;
 
+  virtual void enterLambdaExpr(MxParser::LambdaExprContext *ctx) = 0;
+  virtual void exitLambdaExpr(MxParser::LambdaExprContext *ctx) = 0;
+
   virtual void enterNewExpr(MxParser::NewExprContext *ctx) = 0;
   virtual void exitNewExpr(MxParser::NewExprContext *ctx) = 0;
 

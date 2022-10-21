@@ -49,6 +49,7 @@ PlusPlus: '++';
 MinusMinus: '--';
 
 Dot: '.';
+Arrow: '->';
 
 LeftBracket: '[';
 RightBracket: ']';

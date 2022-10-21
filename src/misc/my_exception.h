@@ -2,11 +2,12 @@
 #include <bits/stdc++.h>
 class MyException : std::exception {
  private:
-  const char* _ctx;
+  const std::string _ctx;
 
  public:
   MyException();
   MyException(const char* ctx);
+  MyException(const std::string& ctx);
   ~MyException();
   const char* What() const;
 };

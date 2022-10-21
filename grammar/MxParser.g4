@@ -46,7 +46,9 @@ primaryExpr:
 	literal
 	| This
 	| LeftParen expression RightParen
-	| Identifier /* todo? */;
+	| Identifier
+	| lambdaExpr /* todo? */;
+lambdaExpr: LeftBracket And? RightBracket argListDef Arrow funcBody;
 newExpr: newArrayExpr | newObjExpr;
 newArrayExpr:
 	New basicType (arrayIndex+ (LeftBracket RightBracket)*);
