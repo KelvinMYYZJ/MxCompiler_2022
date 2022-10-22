@@ -48,14 +48,15 @@ primaryExpr:
 	| LeftParen expression RightParen
 	| Identifier
 	| lambdaExpr /* todo? */;
-lambdaExpr: LeftBracket And? RightBracket argListDef Arrow funcBody;
+lambdaExpr:
+	LeftBracket And? RightBracket argListDef Arrow funcBody;
 newExpr: newArrayExpr | newObjExpr;
 newArrayExpr:
-	New basicType (arrayIndex+ (LeftBracket RightBracket)*);
+	New basicType (arraySize+ (LeftBracket RightBracket)*);
 newObjExpr: New basicType (LeftParen RightParen)?;
 
 arrayIndex: LeftBracket expression RightBracket;
-
+arraySize: LeftBracket IntLiteral RightBracket;
 equalOp: Equal | NotEqual;
 relationOp: Less | Greater | LessEqual | GreaterEqual;
 shiftOp: LeftShift | RightShift;

@@ -143,6 +143,10 @@ public:
     return visitChildren(ctx);
   }
 
+  virtual std::any visitArraySize(MxParser::ArraySizeContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
   virtual std::any visitEqualOp(MxParser::EqualOpContext *ctx) override {
     return visitChildren(ctx);
   }

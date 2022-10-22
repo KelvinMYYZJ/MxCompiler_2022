@@ -34,12 +34,13 @@ public:
     RuleRelationExpr = 20, RuleShiftExpr = 21, RuleAddExpr = 22, RuleMultiExpr = 23, 
     RuleUnaryExpr = 24, RulePostfixExpr = 25, RulePrimaryExpr = 26, RuleLambdaExpr = 27, 
     RuleNewExpr = 28, RuleNewArrayExpr = 29, RuleNewObjExpr = 30, RuleArrayIndex = 31, 
-    RuleEqualOp = 32, RuleRelationOp = 33, RuleShiftOp = 34, RuleAddOp = 35, 
-    RuleMultiOp = 36, RulePrefixUnaryOp = 37, RuleSuffixUnaryOp = 38, RuleLiteral = 39, 
-    RuleFuncStmt = 40, RuleIfStmt = 41, RuleElseStmt = 42, RuleWhileStmt = 43, 
-    RuleForStmt = 44, RuleMemberStmt = 45, RuleLeftValue = 46, RuleCondition = 47, 
-    RuleForCondition = 48, RuleBlock = 49, RuleMultiStmtBlock = 50, RuleReturnStmt = 51, 
-    RuleBreakStmt = 52, RuleContinueStmt = 53, RuleExprStmt = 54, RuleBlankStmt = 55
+    RuleArraySize = 32, RuleEqualOp = 33, RuleRelationOp = 34, RuleShiftOp = 35, 
+    RuleAddOp = 36, RuleMultiOp = 37, RulePrefixUnaryOp = 38, RuleSuffixUnaryOp = 39, 
+    RuleLiteral = 40, RuleFuncStmt = 41, RuleIfStmt = 42, RuleElseStmt = 43, 
+    RuleWhileStmt = 44, RuleForStmt = 45, RuleMemberStmt = 46, RuleLeftValue = 47, 
+    RuleCondition = 48, RuleForCondition = 49, RuleBlock = 50, RuleMultiStmtBlock = 51, 
+    RuleReturnStmt = 52, RuleBreakStmt = 53, RuleContinueStmt = 54, RuleExprStmt = 55, 
+    RuleBlankStmt = 56
   };
 
   explicit MxParser(antlr4::TokenStream *input);
@@ -91,6 +92,7 @@ public:
   class NewArrayExprContext;
   class NewObjExprContext;
   class ArrayIndexContext;
+  class ArraySizeContext;
   class EqualOpContext;
   class RelationOpContext;
   class ShiftOpContext;
@@ -658,8 +660,8 @@ public:
     virtual size_t getRuleIndex() const override;
     antlr4::tree::TerminalNode *New();
     BasicTypeContext *basicType();
-    std::vector<ArrayIndexContext *> arrayIndex();
-    ArrayIndexContext* arrayIndex(size_t i);
+    std::vector<ArraySizeContext *> arraySize();
+    ArraySizeContext* arraySize(size_t i);
     std::vector<antlr4::tree::TerminalNode *> LeftBracket();
     antlr4::tree::TerminalNode* LeftBracket(size_t i);
     std::vector<antlr4::tree::TerminalNode *> RightBracket();
@@ -708,6 +710,23 @@ public:
   };
 
   ArrayIndexContext* arrayIndex();
+
+  class  ArraySizeContext : public antlr4::ParserRuleContext {
+  public:
+    ArraySizeContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    antlr4::tree::TerminalNode *LeftBracket();
+    antlr4::tree::TerminalNode *IntLiteral();
+    antlr4::tree::TerminalNode *RightBracket();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+
+    virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+   
+  };
+
+  ArraySizeContext* arraySize();
 
   class  EqualOpContext : public antlr4::ParserRuleContext {
   public:

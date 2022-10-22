@@ -112,6 +112,9 @@ public:
   virtual void enterArrayIndex(MxParser::ArrayIndexContext * /*ctx*/) override { }
   virtual void exitArrayIndex(MxParser::ArrayIndexContext * /*ctx*/) override { }
 
+  virtual void enterArraySize(MxParser::ArraySizeContext * /*ctx*/) override { }
+  virtual void exitArraySize(MxParser::ArraySizeContext * /*ctx*/) override { }
+
   virtual void enterEqualOp(MxParser::EqualOpContext * /*ctx*/) override { }
   virtual void exitEqualOp(MxParser::EqualOpContext * /*ctx*/) override { }
 
