@@ -12,16 +12,16 @@ varDef:
 classDef: Class Identifier classBody Semi;
 classBody: LeftBrace memberStmt* RightBrace;
 
-funcDef: typeName Identifier argListDef funcBody;
+funcDef: typeName Identifier argListDef stmtBlock;
 argListDef:
 	LeftParen (typeName Identifier (Comma typeName Identifier)*?)? RightParen;
 argList:
 	LeftParen (expression (Comma expression)*?)? RightParen;
-constructFuncDef: Identifier LeftParen RightParen funcBody;
+constructFuncDef: Identifier LeftParen RightParen stmtBlock;
 
 typeName: basicType (LeftBracket RightBracket)*;
 basicType: Int | Bool | String | Void | Identifier;
-funcBody: LeftBrace funcStmt* RightBrace;
+stmtBlock: LeftBrace funcStmt* RightBrace;
 expression: assignExpr;
 assignExpr: orOrExpr ( Assign orOrExpr)?;
 orOrExpr: andAndExpr (OrOr andAndExpr)*;
@@ -49,7 +49,7 @@ primaryExpr:
 	| Identifier
 	| lambdaExpr /* todo? */;
 lambdaExpr:
-	LeftBracket And? RightBracket argListDef Arrow funcBody;
+	LeftBracket And? RightBracket argListDef Arrow stmtBlock;
 newExpr: newArrayExpr | newObjExpr;
 newArrayExpr:
 	New basicType (arraySize+ (LeftBracket RightBracket)*);
@@ -80,7 +80,7 @@ funcStmt:
 	| breakStmt
 	| continueStmt
 	| exprStmt
-	| multiStmtBlock
+	| stmtBlock
 	| blankStmt;
 ifStmt: If condition block elseStmt?;
 elseStmt: Else block;
@@ -95,8 +95,7 @@ leftValue:
 condition: LeftParen expression RightParen;
 forCondition:
 	LeftParen expression? Semi expression? Semi expression? RightParen;
-block: multiStmtBlock | funcStmt;
-multiStmtBlock: LeftBrace funcStmt*? RightBrace;
+block: stmtBlock | funcStmt;
 
 returnStmt: Return expression? Semi;
 breakStmt: Break Semi;

@@ -28,7 +28,7 @@ public:
   enum {
     RuleProg = 0, RuleDefinition = 1, RuleVarDef = 2, RuleClassDef = 3, 
     RuleClassBody = 4, RuleFuncDef = 5, RuleArgListDef = 6, RuleArgList = 7, 
-    RuleConstructFuncDef = 8, RuleTypeName = 9, RuleBasicType = 10, RuleFuncBody = 11, 
+    RuleConstructFuncDef = 8, RuleTypeName = 9, RuleBasicType = 10, RuleStmtBlock = 11, 
     RuleExpression = 12, RuleAssignExpr = 13, RuleOrOrExpr = 14, RuleAndAndExpr = 15, 
     RuleOrExpr = 16, RuleXorExpr = 17, RuleAndExpr = 18, RuleEqualityExpr = 19, 
     RuleRelationExpr = 20, RuleShiftExpr = 21, RuleAddExpr = 22, RuleMultiExpr = 23, 
@@ -38,9 +38,8 @@ public:
     RuleAddOp = 36, RuleMultiOp = 37, RulePrefixUnaryOp = 38, RuleSuffixUnaryOp = 39, 
     RuleLiteral = 40, RuleFuncStmt = 41, RuleIfStmt = 42, RuleElseStmt = 43, 
     RuleWhileStmt = 44, RuleForStmt = 45, RuleMemberStmt = 46, RuleLeftValue = 47, 
-    RuleCondition = 48, RuleForCondition = 49, RuleBlock = 50, RuleMultiStmtBlock = 51, 
-    RuleReturnStmt = 52, RuleBreakStmt = 53, RuleContinueStmt = 54, RuleExprStmt = 55, 
-    RuleBlankStmt = 56
+    RuleCondition = 48, RuleForCondition = 49, RuleBlock = 50, RuleReturnStmt = 51, 
+    RuleBreakStmt = 52, RuleContinueStmt = 53, RuleExprStmt = 54, RuleBlankStmt = 55
   };
 
   explicit MxParser(antlr4::TokenStream *input);
@@ -71,7 +70,7 @@ public:
   class ConstructFuncDefContext;
   class TypeNameContext;
   class BasicTypeContext;
-  class FuncBodyContext;
+  class StmtBlockContext;
   class ExpressionContext;
   class AssignExprContext;
   class OrOrExprContext;
@@ -111,7 +110,6 @@ public:
   class ConditionContext;
   class ForConditionContext;
   class BlockContext;
-  class MultiStmtBlockContext;
   class ReturnStmtContext;
   class BreakStmtContext;
   class ContinueStmtContext;
@@ -219,7 +217,7 @@ public:
     TypeNameContext *typeName();
     antlr4::tree::TerminalNode *Identifier();
     ArgListDefContext *argListDef();
-    FuncBodyContext *funcBody();
+    StmtBlockContext *stmtBlock();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -279,7 +277,7 @@ public:
     antlr4::tree::TerminalNode *Identifier();
     antlr4::tree::TerminalNode *LeftParen();
     antlr4::tree::TerminalNode *RightParen();
-    FuncBodyContext *funcBody();
+    StmtBlockContext *stmtBlock();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -328,9 +326,9 @@ public:
 
   BasicTypeContext* basicType();
 
-  class  FuncBodyContext : public antlr4::ParserRuleContext {
+  class  StmtBlockContext : public antlr4::ParserRuleContext {
   public:
-    FuncBodyContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    StmtBlockContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     antlr4::tree::TerminalNode *LeftBrace();
     antlr4::tree::TerminalNode *RightBrace();
@@ -344,7 +342,7 @@ public:
    
   };
 
-  FuncBodyContext* funcBody();
+  StmtBlockContext* stmtBlock();
 
   class  ExpressionContext : public antlr4::ParserRuleContext {
   public:
@@ -626,7 +624,7 @@ public:
     antlr4::tree::TerminalNode *RightBracket();
     ArgListDefContext *argListDef();
     antlr4::tree::TerminalNode *Arrow();
-    FuncBodyContext *funcBody();
+    StmtBlockContext *stmtBlock();
     antlr4::tree::TerminalNode *And();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -877,7 +875,7 @@ public:
     BreakStmtContext *breakStmt();
     ContinueStmtContext *continueStmt();
     ExprStmtContext *exprStmt();
-    MultiStmtBlockContext *multiStmtBlock();
+    StmtBlockContext *stmtBlock();
     BlankStmtContext *blankStmt();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -1033,7 +1031,7 @@ public:
   public:
     BlockContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
-    MultiStmtBlockContext *multiStmtBlock();
+    StmtBlockContext *stmtBlock();
     FuncStmtContext *funcStmt();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -1044,24 +1042,6 @@ public:
   };
 
   BlockContext* block();
-
-  class  MultiStmtBlockContext : public antlr4::ParserRuleContext {
-  public:
-    MultiStmtBlockContext(antlr4::ParserRuleContext *parent, size_t invokingState);
-    virtual size_t getRuleIndex() const override;
-    antlr4::tree::TerminalNode *LeftBrace();
-    antlr4::tree::TerminalNode *RightBrace();
-    std::vector<FuncStmtContext *> funcStmt();
-    FuncStmtContext* funcStmt(size_t i);
-
-    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
-    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
-
-    virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
-   
-  };
-
-  MultiStmtBlockContext* multiStmtBlock();
 
   class  ReturnStmtContext : public antlr4::ParserRuleContext {
   public:

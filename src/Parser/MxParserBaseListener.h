@@ -49,8 +49,8 @@ public:
   virtual void enterBasicType(MxParser::BasicTypeContext * /*ctx*/) override { }
   virtual void exitBasicType(MxParser::BasicTypeContext * /*ctx*/) override { }
 
-  virtual void enterFuncBody(MxParser::FuncBodyContext * /*ctx*/) override { }
-  virtual void exitFuncBody(MxParser::FuncBodyContext * /*ctx*/) override { }
+  virtual void enterStmtBlock(MxParser::StmtBlockContext * /*ctx*/) override { }
+  virtual void exitStmtBlock(MxParser::StmtBlockContext * /*ctx*/) override { }
 
   virtual void enterExpression(MxParser::ExpressionContext * /*ctx*/) override { }
   virtual void exitExpression(MxParser::ExpressionContext * /*ctx*/) override { }
@@ -168,9 +168,6 @@ public:
 
   virtual void enterBlock(MxParser::BlockContext * /*ctx*/) override { }
   virtual void exitBlock(MxParser::BlockContext * /*ctx*/) override { }
-
-  virtual void enterMultiStmtBlock(MxParser::MultiStmtBlockContext * /*ctx*/) override { }
-  virtual void exitMultiStmtBlock(MxParser::MultiStmtBlockContext * /*ctx*/) override { }
 
   virtual void enterReturnStmt(MxParser::ReturnStmtContext * /*ctx*/) override { }
   virtual void exitReturnStmt(MxParser::ReturnStmtContext * /*ctx*/) override { }

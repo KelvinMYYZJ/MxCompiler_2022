@@ -47,8 +47,8 @@ public:
   virtual void enterBasicType(MxParser::BasicTypeContext *ctx) = 0;
   virtual void exitBasicType(MxParser::BasicTypeContext *ctx) = 0;
 
-  virtual void enterFuncBody(MxParser::FuncBodyContext *ctx) = 0;
-  virtual void exitFuncBody(MxParser::FuncBodyContext *ctx) = 0;
+  virtual void enterStmtBlock(MxParser::StmtBlockContext *ctx) = 0;
+  virtual void exitStmtBlock(MxParser::StmtBlockContext *ctx) = 0;
 
   virtual void enterExpression(MxParser::ExpressionContext *ctx) = 0;
   virtual void exitExpression(MxParser::ExpressionContext *ctx) = 0;
@@ -166,9 +166,6 @@ public:
 
   virtual void enterBlock(MxParser::BlockContext *ctx) = 0;
   virtual void exitBlock(MxParser::BlockContext *ctx) = 0;
-
-  virtual void enterMultiStmtBlock(MxParser::MultiStmtBlockContext *ctx) = 0;
-  virtual void exitMultiStmtBlock(MxParser::MultiStmtBlockContext *ctx) = 0;
 
   virtual void enterReturnStmt(MxParser::ReturnStmtContext *ctx) = 0;
   virtual void exitReturnStmt(MxParser::ReturnStmtContext *ctx) = 0;

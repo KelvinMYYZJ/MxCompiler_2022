@@ -59,7 +59,7 @@ public:
     return visitChildren(ctx);
   }
 
-  virtual std::any visitFuncBody(MxParser::FuncBodyContext *ctx) override {
+  virtual std::any visitStmtBlock(MxParser::StmtBlockContext *ctx) override {
     return visitChildren(ctx);
   }
 
@@ -216,10 +216,6 @@ public:
   }
 
   virtual std::any visitBlock(MxParser::BlockContext *ctx) override {
-    return visitChildren(ctx);
-  }
-
-  virtual std::any visitMultiStmtBlock(MxParser::MultiStmtBlockContext *ctx) override {
     return visitChildren(ctx);
   }
 

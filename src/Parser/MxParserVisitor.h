@@ -41,7 +41,7 @@ public:
 
     virtual std::any visitBasicType(MxParser::BasicTypeContext *context) = 0;
 
-    virtual std::any visitFuncBody(MxParser::FuncBodyContext *context) = 0;
+    virtual std::any visitStmtBlock(MxParser::StmtBlockContext *context) = 0;
 
     virtual std::any visitExpression(MxParser::ExpressionContext *context) = 0;
 
@@ -120,8 +120,6 @@ public:
     virtual std::any visitForCondition(MxParser::ForConditionContext *context) = 0;
 
     virtual std::any visitBlock(MxParser::BlockContext *context) = 0;
-
-    virtual std::any visitMultiStmtBlock(MxParser::MultiStmtBlockContext *context) = 0;
 
     virtual std::any visitReturnStmt(MxParser::ReturnStmtContext *context) = 0;
 

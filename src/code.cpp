@@ -1,5 +1,6 @@
 #include <bits/stdc++.h>
 
+#include "AST_nodes.h"
 #include "MxLexer.h"
 #include "MxParser.h"
 #include "MxParserBaseListener.h"
@@ -30,11 +31,8 @@ signed main() {
     MxParser parser(&tokens);
     parser.removeErrorListeners();
     parser.addErrorListener(&error_listener);
-    tree::ParseTree *parse_tree_root = parser.prog();
-    // visit visitor;
-    // parse_tree_root->accept(ParseTreeVisitor *visitor);
-    // MyListener my_listener;
-    // tree::ParseTreeWalker::DEFAULT.walk(&my_listener, tree);
+    auto *parse_tree_root = parser.prog();
+    AST::ProgNode ast_root(parse_tree_root);
   } catch (const MyException &exp) {
     std::cerr << "error!!" << std::endl << exp.What() << std::endl;
     return 1;
