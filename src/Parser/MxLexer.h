@@ -12,17 +12,17 @@
 class  MxLexer : public antlr4::Lexer {
 public:
   enum {
-    Void = 1, Bool = 2, Int = 3, String = 4, New = 5, Class = 6, True = 7, 
-    False = 8, This = 9, If = 10, Else = 11, For = 12, While = 13, Break = 14, 
-    Continue = 15, Return = 16, Plus = 17, Minus = 18, Star = 19, Div = 20, 
-    Mod = 21, Greater = 22, Less = 23, GreaterEqual = 24, LessEqual = 25, 
-    NotEqual = 26, Equal = 27, AndAnd = 28, OrOr = 29, Not = 30, RightShift = 31, 
-    LeftShift = 32, And = 33, Or = 34, Caret = 35, Tilde = 36, Assign = 37, 
-    PlusPlus = 38, MinusMinus = 39, Dot = 40, Arrow = 41, LeftBracket = 42, 
-    RightBracket = 43, LeftParen = 44, RightParen = 45, Comma = 46, Semi = 47, 
-    LeftBrace = 48, RightBrace = 49, LineComment = 50, BlockComment = 51, 
-    Space = 52, Tab = 53, Eol = 54, Comment = 55, Identifier = 56, IntLiteral = 57, 
-    StringLiteral = 58, NullLiteral = 59
+    Void = 1, Bool = 2, Int = 3, String = 4, New = 5, Class = 6, NullLiteral = 7, 
+    True = 8, False = 9, This = 10, If = 11, Else = 12, For = 13, While = 14, 
+    Break = 15, Continue = 16, Return = 17, Plus = 18, Minus = 19, Star = 20, 
+    Div = 21, Mod = 22, Greater = 23, Less = 24, GreaterEqual = 25, LessEqual = 26, 
+    NotEqual = 27, Equal = 28, AndAnd = 29, OrOr = 30, Not = 31, RightShift = 32, 
+    LeftShift = 33, And = 34, Or = 35, Caret = 36, Tilde = 37, Assign = 38, 
+    PlusPlus = 39, MinusMinus = 40, Dot = 41, Arrow = 42, LeftBracket = 43, 
+    RightBracket = 44, LeftParen = 45, RightParen = 46, Comma = 47, Semi = 48, 
+    LeftBrace = 49, RightBrace = 50, LineComment = 51, BlockComment = 52, 
+    Space = 53, Tab = 54, Eol = 55, Comment = 56, Identifier = 57, IntLiteral = 58, 
+    StringLiteral = 59
   };
 
   explicit MxLexer(antlr4::CharStream *input);

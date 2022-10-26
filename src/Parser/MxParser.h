@@ -12,17 +12,17 @@
 class  MxParser : public antlr4::Parser {
 public:
   enum {
-    Void = 1, Bool = 2, Int = 3, String = 4, New = 5, Class = 6, True = 7, 
-    False = 8, This = 9, If = 10, Else = 11, For = 12, While = 13, Break = 14, 
-    Continue = 15, Return = 16, Plus = 17, Minus = 18, Star = 19, Div = 20, 
-    Mod = 21, Greater = 22, Less = 23, GreaterEqual = 24, LessEqual = 25, 
-    NotEqual = 26, Equal = 27, AndAnd = 28, OrOr = 29, Not = 30, RightShift = 31, 
-    LeftShift = 32, And = 33, Or = 34, Caret = 35, Tilde = 36, Assign = 37, 
-    PlusPlus = 38, MinusMinus = 39, Dot = 40, Arrow = 41, LeftBracket = 42, 
-    RightBracket = 43, LeftParen = 44, RightParen = 45, Comma = 46, Semi = 47, 
-    LeftBrace = 48, RightBrace = 49, LineComment = 50, BlockComment = 51, 
-    Space = 52, Tab = 53, Eol = 54, Comment = 55, Identifier = 56, IntLiteral = 57, 
-    StringLiteral = 58, NullLiteral = 59
+    Void = 1, Bool = 2, Int = 3, String = 4, New = 5, Class = 6, NullLiteral = 7, 
+    True = 8, False = 9, This = 10, If = 11, Else = 12, For = 13, While = 14, 
+    Break = 15, Continue = 16, Return = 17, Plus = 18, Minus = 19, Star = 20, 
+    Div = 21, Mod = 22, Greater = 23, Less = 24, GreaterEqual = 25, LessEqual = 26, 
+    NotEqual = 27, Equal = 28, AndAnd = 29, OrOr = 30, Not = 31, RightShift = 32, 
+    LeftShift = 33, And = 34, Or = 35, Caret = 36, Tilde = 37, Assign = 38, 
+    PlusPlus = 39, MinusMinus = 40, Dot = 41, Arrow = 42, LeftBracket = 43, 
+    RightBracket = 44, LeftParen = 45, RightParen = 46, Comma = 47, Semi = 48, 
+    LeftBrace = 49, RightBrace = 50, LineComment = 51, BlockComment = 52, 
+    Space = 53, Tab = 54, Eol = 55, Comment = 56, Identifier = 57, IntLiteral = 58, 
+    StringLiteral = 59
   };
 
   enum {
@@ -34,13 +34,12 @@ public:
     RuleEqualityExpr = 20, RuleRelationExpr = 21, RuleShiftExpr = 22, RuleAddExpr = 23, 
     RuleMultiExpr = 24, RuleUnaryExpr = 25, RulePostfixExpr = 26, RulePrimaryExpr = 27, 
     RuleLambdaExpr = 28, RuleNewExpr = 29, RuleNewArrayExpr = 30, RuleNewObjExpr = 31, 
-    RuleArrayIndex = 32, RuleArraySize = 33, RuleEqualOp = 34, RuleRelationOp = 35, 
-    RuleShiftOp = 36, RuleAddOp = 37, RuleMultiOp = 38, RulePrefixUnaryOp = 39, 
-    RuleSuffixUnaryOp = 40, RuleLiteral = 41, RuleFuncStmt = 42, RuleIfStmt = 43, 
-    RuleElseStmt = 44, RuleWhileStmt = 45, RuleForStmt = 46, RuleMemberStmt = 47, 
-    RuleLeftValue = 48, RuleCondition = 49, RuleForCondition = 50, RuleBlock = 51, 
-    RuleReturnStmt = 52, RuleBreakStmt = 53, RuleContinueStmt = 54, RuleExprStmt = 55, 
-    RuleBlankStmt = 56
+    RuleArrayIndex = 32, RuleEqualOp = 33, RuleRelationOp = 34, RuleShiftOp = 35, 
+    RuleAddOp = 36, RuleMultiOp = 37, RulePrefixUnaryOp = 38, RuleSuffixUnaryOp = 39, 
+    RuleLiteral = 40, RuleFuncStmt = 41, RuleIfStmt = 42, RuleElseStmt = 43, 
+    RuleWhileStmt = 44, RuleForStmt = 45, RuleMemberStmt = 46, RuleLeftValue = 47, 
+    RuleCondition = 48, RuleForCondition = 49, RuleBlock = 50, RuleReturnStmt = 51, 
+    RuleBreakStmt = 52, RuleContinueStmt = 53, RuleExprStmt = 54, RuleBlankStmt = 55
   };
 
   explicit MxParser(antlr4::TokenStream *input);
@@ -93,7 +92,6 @@ public:
   class NewArrayExprContext;
   class NewObjExprContext;
   class ArrayIndexContext;
-  class ArraySizeContext;
   class EqualOpContext;
   class RelationOpContext;
   class ShiftOpContext;
@@ -673,8 +671,8 @@ public:
     virtual size_t getRuleIndex() const override;
     antlr4::tree::TerminalNode *New();
     BasicTypeContext *basicType();
-    std::vector<ArraySizeContext *> arraySize();
-    ArraySizeContext* arraySize(size_t i);
+    std::vector<ArrayIndexContext *> arrayIndex();
+    ArrayIndexContext* arrayIndex(size_t i);
     std::vector<antlr4::tree::TerminalNode *> LeftBracket();
     antlr4::tree::TerminalNode* LeftBracket(size_t i);
     std::vector<antlr4::tree::TerminalNode *> RightBracket();
@@ -723,23 +721,6 @@ public:
   };
 
   ArrayIndexContext* arrayIndex();
-
-  class  ArraySizeContext : public antlr4::ParserRuleContext {
-  public:
-    ArraySizeContext(antlr4::ParserRuleContext *parent, size_t invokingState);
-    virtual size_t getRuleIndex() const override;
-    antlr4::tree::TerminalNode *LeftBracket();
-    antlr4::tree::TerminalNode *IntLiteral();
-    antlr4::tree::TerminalNode *RightBracket();
-
-    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
-    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
-
-    virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
-   
-  };
-
-  ArraySizeContext* arraySize();
 
   class  EqualOpContext : public antlr4::ParserRuleContext {
   public:
@@ -1024,6 +1005,9 @@ public:
 
   class  ForConditionContext : public antlr4::ParserRuleContext {
   public:
+    MxParser::ExpressionContext *init_expr = nullptr;
+    MxParser::ExpressionContext *condition_expr = nullptr;
+    MxParser::ExpressionContext *step_expr = nullptr;
     ForConditionContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     antlr4::tree::TerminalNode *LeftParen();

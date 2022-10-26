@@ -1,4 +1,3 @@
-#pragma once
 #include "AST_nodes.h"
 using namespace std;
 namespace AST {
@@ -76,10 +75,10 @@ void StmtBlockNode::AddStmtNode(MxParser::FuncStmtContext* func_stmt) {
   } else if (auto nxt_node = func_stmt->returnStmt()) {
     stmts.push_back(make_shared<ReturnStmtNode>(nxt_node));
   } else if (auto nxt_node = func_stmt->breakStmt()) {
-    Assert(in_loop, "break outside a loop");
+    MyAssert(in_loop, "break outside a loop");
     stmts.push_back(make_shared<BreakStmtNode>(nxt_node));
   } else if (auto nxt_node = func_stmt->continueStmt()) {
-    Assert(in_loop, "continue outside a loop");
+    MyAssert(in_loop, "continue outside a loop");
     stmts.push_back(make_shared<ContinueStmtNode>(nxt_node));
   } else if (auto nxt_node = func_stmt->exprStmt()) {
     stmts.push_back(make_shared<ExprStmtNode>(nxt_node));
@@ -219,7 +218,7 @@ MultiExprNode::MultiExprNode(MxParser::MultiExprContext* ctx) {
 UnaryExprNode::UnaryExprNode(MxParser::UnaryExprContext* ctx) {
   auto now_expr = ctx;
   while (now_expr->unaryExpr()) {
-    Assert(now_expr->prefixUnaryOp(), "Unknown error in AST building");
+    MyAssert(now_expr->prefixUnaryOp(), "Unknown error in AST building");
     auto now_prefix_op = now_expr->prefixUnaryOp();
     if (now_prefix_op->PlusPlus()) {
       prefix_unary_ops.push_back(kPlusPlus);
@@ -264,6 +263,7 @@ PostfixExprNode::PostfixExprNode(MxParser::PostfixExprContext* ctx) {
       throw MyException("Unknown error in AST building");
     now_expr = now_expr->postfixExpr();
   }
+  suffix_ops.reverse();  // inner op is in front;
   // now, now_expr is a primaryExpr
   if (auto next_node = now_expr->primaryExpr()) {
     primary_expr = make_shared<PrimaryExprNode>(next_node);
@@ -293,7 +293,12 @@ NewExprNode::NewExprNode(MxParser::NewExprContext* ctx) {
   if (auto now_node = ctx->newObjExpr()) {
     type = ObjectType(now_node->basicType()->getText(), 0);
   } else if (auto now_node = ctx->newArrayExpr()) {
-    type = ObjectType();  // todo
+    is_array = true;
+    for (auto array_idx : ctx->newArrayExpr()->arrayIndex()) {
+      array_idxs.push_back(make_shared<ArrayIndexNode>(array_idx));
+    }
+    type = ObjectType(now_node->basicType()->getText(),
+                      now_node->LeftBracket().size() + now_node->arrayIndex().size());  // todo
   } else
     throw MyException("Unknown error in AST building");
 }
@@ -302,17 +307,19 @@ ArrayIndexNode::ArrayIndexNode(MxParser::ArrayIndexContext* ctx) {
 }
 LiteralNode::LiteralNode(MxParser::LiteralContext* ctx) {
   if (auto now_literal = ctx->IntLiteral()) {
-    value = stoi(now_literal->getText());
+    type = kIntType;
+    string tmp = now_literal->getText();
+    value = int(stoull(tmp));
   } else if (auto now_literal = ctx->True()) {
-    type = ObjectType("bool", 0);
+    type = kBoolType;
     value = true;
   } else if (auto now_literal = ctx->False()) {
-    type = ObjectType("bool", 0);
+    type = kBoolType;
     value = false;
   } else if (auto now_literal = ctx->NullLiteral()) {
-    type = ObjectType("null", 0);
+    type = kNullType;
   } else if (auto now_literal = ctx->StringLiteral()) {
-    type = ObjectType("string", 0);
+    type = kStringType;
     value = string(now_literal->getText().c_str() + 1);
     any_cast<string>(value).pop_back();
   }
@@ -320,10 +327,10 @@ LiteralNode::LiteralNode(MxParser::LiteralContext* ctx) {
 IfStmtNode::IfStmtNode(MxParser::IfStmtContext* ctx, bool _in_loop) {
   in_loop = _in_loop;
   condition_expr = make_shared<ExpressionNode>(ctx->condition()->expression());
-  block = make_shared<StmtBlockNode>(ctx->block());
+  block = make_shared<StmtBlockNode>(ctx->block(), in_loop);
   if (auto now_else_stmt = ctx->elseStmt()) {
     have_else = true;
-    else_block = make_shared<StmtBlockNode>(ctx->elseStmt()->block());
+    else_block = make_shared<StmtBlockNode>(ctx->elseStmt()->block(), in_loop);
   } else
     have_else = false;
 }
@@ -332,17 +339,17 @@ WhileStmtNode::WhileStmtNode(MxParser::WhileStmtContext* ctx) {
   block = make_shared<StmtBlockNode>(ctx->block(), true);
 }
 ForStmtNode::ForStmtNode(MxParser::ForStmtContext* ctx) {
-  if (auto now_init_expr = ctx->forCondition()->expression(0)) {
+  if (auto now_init_expr = ctx->forCondition()->init_expr) {
     have_init_expr = true;
     init_expr = make_shared<ExpressionNode>(now_init_expr);
   } else
     have_init_expr = false;
-  if (auto now_condition_expr = ctx->forCondition()->expression(1)) {
+  if (auto now_condition_expr = ctx->forCondition()->condition_expr) {
     have_condition_expr = true;
     condition_expr = make_shared<ExpressionNode>(now_condition_expr);
   } else
     have_condition_expr = false;
-  if (auto now_step_expr = ctx->forCondition()->expression(0)) {
+  if (auto now_step_expr = ctx->forCondition()->step_expr) {
     have_step_expr = true;
     step_expr = make_shared<ExpressionNode>(now_step_expr);
   } else

@@ -1,5 +1,6 @@
-#pragma once
 #include "gscope.h"
+
+#include "my_exception.h"
 using namespace std;
 
 GScope::GScope()
@@ -45,6 +46,7 @@ ValueType GScope::GetClassMember(const string& class_identifier, const string& m
     if (class_info.member_vars->count(member_identifier)) {
       ret.AddObjectType((*class_info.member_vars)[member_identifier], true);
     }
+    MyAssert(ret.have_func_type || ret.have_object_type, "Undefined member : \"" + member_identifier + "\"");
     return ret;
   } else
     throw MyException("Undefined class : \"" + class_identifier + "\"");
@@ -52,8 +54,15 @@ ValueType GScope::GetClassMember(const string& class_identifier, const string& m
 void GScope::CheckIdentifier(const string& identifier) const {
   if (classes->count(identifier)) throw MyException("identifier \"" + identifier + "\" used as a class identifier.");
 }
+void GScope::CheckClass(const string& class_identifier) const {
+  if (class_identifier == "int" || class_identifier == "string" || class_identifier == "bool" ||
+      class_identifier == "void")
+    return;
+  MyAssert(classes->count(class_identifier), "undefined type \"" + class_identifier + "\"");
+}
 
 void GScope::AddFunc(const string& identifier, FuncType func_type) {
+  MyAssert(!classes->count(identifier), "Func use a class identifier : \"" + identifier + "\"");
   if (funcs->count(identifier)) {
     throw MyException("redefiniation of function :\"" + identifier + "\"");
   }

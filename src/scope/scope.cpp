@@ -1,4 +1,3 @@
-#pragma once
 #include "scope.h"
 using namespace std;
 
@@ -17,9 +16,12 @@ void Scope::AddVar(const string& identifier, ObjectType type) {
 }
 ValueType Scope::GetClassMember(const string& class_identifier, const string& member_identifier) const {
   if (parent) {
-    return parent->GetClassMember(class_identifier, class_identifier);
+    return parent->GetClassMember(class_identifier, member_identifier);
   }
   throw MyException("Unknown error");
+}
+void Scope::CheckClass(const string& class_identifier) const {
+  if (parent) parent->CheckClass(class_identifier);
 }
 Scope::Scope(const shared_ptr<Scope>& _parent, bool _in_lambda)
     : parent(_parent), in_lambda(_in_lambda), vars(make_shared<unordered_map<string, ObjectType>>()) {}

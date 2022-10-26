@@ -85,8 +85,6 @@ public:
 
     virtual std::any visitArrayIndex(MxParser::ArrayIndexContext *context) = 0;
 
-    virtual std::any visitArraySize(MxParser::ArraySizeContext *context) = 0;
-
     virtual std::any visitEqualOp(MxParser::EqualOpContext *context) = 0;
 
     virtual std::any visitRelationOp(MxParser::RelationOpContext *context) = 0;

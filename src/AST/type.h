@@ -20,6 +20,7 @@ const ObjectType kIntType = {{"int"}};
 const ObjectType kStringType = {{"string"}};
 const ObjectType kBoolType = {{"bool"}};
 const ObjectType kNullType = {{"null"}};
+const ObjectType kVoidType = {{"void"}};
 
 struct FuncType {
  public:
@@ -40,6 +41,7 @@ struct RetType {
   bool operator!=(const RetType& rhs) const;
   void AddRet(ObjectType ret_type);
   void AddRet(RetType obj);
+  bool IsVoid() const;
 };
 
 struct Arg {

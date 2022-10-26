@@ -6,6 +6,7 @@ using namespace std;
 
 class ValueType {
  public:
+  ValueType();
   ObjectType object_type;
   bool have_object_type;
   bool object_leftvalue;

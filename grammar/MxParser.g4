@@ -51,11 +51,10 @@ lambdaExpr:
 	LeftBracket And? RightBracket argListDef Arrow stmtBlock;
 newExpr: newArrayExpr | newObjExpr;
 newArrayExpr:
-	New basicType (arraySize+ (LeftBracket RightBracket)*);
+	New basicType (arrayIndex+ (LeftBracket RightBracket)*);
 newObjExpr: New basicType (LeftParen RightParen)?;
 
 arrayIndex: LeftBracket expression RightBracket;
-arraySize: LeftBracket IntLiteral RightBracket;
 equalOp: Equal | NotEqual;
 relationOp: Less | Greater | LessEqual | GreaterEqual;
 shiftOp: LeftShift | RightShift;
@@ -93,7 +92,8 @@ leftValue:
 
 condition: LeftParen expression RightParen;
 forCondition:
-	LeftParen expression? Semi expression? Semi expression? RightParen;
+	LeftParen init_expr = expression? Semi condition_expr = expression? Semi step_expr = expression?
+		RightParen;
 block: stmtBlock | funcStmt;
 
 returnStmt: Return expression? Semi;

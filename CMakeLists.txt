@@ -21,7 +21,6 @@ else()
 endif()
 # ----------------------compiling the antlr runtime----------------------------
 set(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -g -ggdb")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}   -Ofast")
 set(antlr_runtime_dir ${PROJECT_SOURCE_DIR}/antlr_runtime)
 set(antlr_src_dir ${antlr_runtime_dir}/src)
 set(antlr_src_sub_dirs

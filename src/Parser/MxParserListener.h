@@ -113,9 +113,6 @@ public:
   virtual void enterArrayIndex(MxParser::ArrayIndexContext *ctx) = 0;
   virtual void exitArrayIndex(MxParser::ArrayIndexContext *ctx) = 0;
 
-  virtual void enterArraySize(MxParser::ArraySizeContext *ctx) = 0;
-  virtual void exitArraySize(MxParser::ArraySizeContext *ctx) = 0;
-
   virtual void enterEqualOp(MxParser::EqualOpContext *ctx) = 0;
   virtual void exitEqualOp(MxParser::EqualOpContext *ctx) = 0;
 

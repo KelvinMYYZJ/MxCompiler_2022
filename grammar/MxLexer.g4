@@ -7,6 +7,7 @@ String: 'string';
 New: 'new';
 Class: 'class';
 fragment Null: 'null';
+NullLiteral: Null;
 True: 'true';
 False: 'false';
 This: 'this';
@@ -84,5 +85,4 @@ IntLiteral: '0' | NonZeroDigit Digit*;
 fragment Escapesequence: '\\n' | '\\"' | '\\\\';
 fragment Schar: ~ ["\\\n\r]| Escapesequence;
 StringLiteral: '"' Schar* '"';
-NullLiteral: Null;
 

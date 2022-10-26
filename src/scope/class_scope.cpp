@@ -1,4 +1,3 @@
-#pragma once
 #include "class_scope.h"
 using namespace std;
 

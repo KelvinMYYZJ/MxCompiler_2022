@@ -12,4 +12,4 @@ class MyException : std::exception {
   const char* What() const;
 };
 
-void Assert(bool condition,const MyException& exception);
+void MyAssert(bool condition,const MyException& exception);

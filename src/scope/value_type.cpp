@@ -1,9 +1,10 @@
-#pragma once
 #include "value_type.h"
 
 #include "my_exception.h"
 
 using namespace std;
+
+ValueType::ValueType() : have_func_type(false), have_object_type(false) {}
 
 void ValueType::AddObjectType(const ObjectType& _object_type, bool is_leftvalue) {
   object_type = _object_type;
@@ -25,10 +26,10 @@ void ValueType::SetFuncType(const FuncType& _func_type) {
 }
 
 ObjectType ValueType::GetObjectType() {
-  Assert(have_object_type, "doesn't have object type");
+  MyAssert(have_object_type, "doesn't have object type");
   return object_type;
 }
 FuncType ValueType::GetFuncType() {
-  Assert(have_func_type, "doesn't have function type");
+  MyAssert(have_func_type, "doesn't have function type");
   return func_type;
 }

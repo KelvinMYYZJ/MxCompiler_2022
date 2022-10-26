@@ -272,6 +272,8 @@ class NewExprNode {
  public:
   ValueType value_type;
   shared_ptr<Scope> scope;
+  bool is_array;
+  list<shared_ptr<ArrayIndexNode>> array_idxs;
   void BuildScope(shared_ptr<Scope> _scope);
   ObjectType type;
   NewExprNode(MxParser::NewExprContext* ctx);

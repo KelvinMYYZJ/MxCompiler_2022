@@ -35,13 +35,13 @@ void ProgNode::BuildScope(shared_ptr<GScope> _gscope) {
           }
         } else if (auto func_def = AnyCastPtr<FuncDefNode>(member_def)) {
           const auto& func_identifier = func_def->func_identifier;
-          Assert(func_identifier != class_identifier, "Member func should not have the same identifier with class.");
+          MyAssert(func_identifier != class_identifier, "Member func should not have the same identifier with class.");
           const auto& func_type = func_def->GetFuncType();
           class_info.AddMemberFunc(func_identifier, func_type);
           class_scope->AddMemberFunc(func_identifier, func_type);
         } else if (auto constructor_def = AnyCastPtr<ConstructFuncDefNode>(member_def)) {
-          Assert(constructor_def->func_identifier == class_identifier,
-                 "Constructor should have the same name with class.");
+          MyAssert(constructor_def->func_identifier == class_identifier,
+                   "Constructor should have the same name with class.");
         }
       }
     }
@@ -57,18 +57,20 @@ void ProgNode::BuildScope(shared_ptr<GScope> _gscope) {
       func_def->BuildScope(gscope);
     }
   }
+  MyAssert(gscope->funcs->count("main"), "main func not found");
 }
 void VarDefNode::BuildScope(shared_ptr<Scope> _scope) {
   scope = _scope;
-  const auto& var_type = type;
+  scope->CheckClass(type.type_identifier);
+  MyAssert(type.type_identifier != "void", "wrong type in var def : void");
   for (auto var : var_defs) {
     const auto& var_identifier = var.var_identifier;
     if (var.have_expr) {
       auto expr = var.expr;
       expr->BuildScope(scope);
-      Assert(expr->value_type.GetObjectType() == var_type, "init a var with a different type expr.");
+      MyAssert(expr->value_type.GetObjectType() == type, "init a var with a different type expr.");
     }
-    scope->AddVar(var_identifier, var_type);
+    scope->AddVar(var_identifier, type);
   }
 }
 void ClassDefNode::BuildScope() {
@@ -85,13 +87,17 @@ void ClassDefNode::BuildScope() {
 }
 void FuncDefNode::BuildScope(shared_ptr<Scope> _scope) {
   scope = make_shared<Scope>(_scope);
+  scope->CheckClass(type.type_identifier);
   args_def->BuildScope(scope);
   body->BuildScope(scope, false);
-  Assert(type == body->ret_type.type, "wrong return type");
+  MyAssert(
+      type == body->ret_type.type || ((type == kVoidType || func_identifier == "main") && !body->ret_type.have_ret),
+      "wrong return type");
 }
 void ArgListDefNode::BuildScope(shared_ptr<Scope> _scope) {
   scope = _scope;
   for (auto arg : args) {
+    scope->CheckClass(arg.type.type_identifier);
     scope->AddVar(arg.arg_identifier, arg.type);
   }
 }
@@ -105,7 +111,7 @@ void ArgListNode::BuildScope(shared_ptr<Scope> _scope) {
 void ConstructFuncDefNode::BuildScope(shared_ptr<Scope> _scope) {
   scope = make_shared<Scope>(_scope);
   body->BuildScope(scope, false);
-  Assert(!body->ret_type.have_ret, "wrong return type of construct func");
+  MyAssert(body->ret_type.IsVoid(), "wrong return type of construct func");
 }
 void StmtBlockNode::BuildScope(shared_ptr<Scope> _scope, bool create_inner_scope) {
   if (create_inner_scope) {
@@ -148,8 +154,8 @@ void AssignExprNode::BuildScope(shared_ptr<Scope> _scope) {
   if (have_left_expr) {
     left_expr->BuildScope(scope);
     auto left_value_type = left_expr->value_type;
-    Assert(left_value_type.object_leftvalue, "invaild left value");
-    Assert(value_type.GetObjectType() == left_value_type.GetObjectType(), "different type to assign");
+    MyAssert(left_value_type.object_leftvalue, "invaild left value");
+    MyAssert(value_type.GetObjectType() == left_value_type.GetObjectType(), "different type to assign");
   }
 }
 void LorExprNode::BuildScope(shared_ptr<Scope> _scope) {
@@ -162,7 +168,7 @@ void LorExprNode::BuildScope(shared_ptr<Scope> _scope) {
   }
   for (auto land_expr : land_exprs) {
     land_expr->BuildScope(scope);
-    Assert(land_expr->value_type.GetObjectType() == correct_type, "not bool in land expr");
+    MyAssert(land_expr->value_type.GetObjectType() == correct_type, "not bool in land expr");
   }
   value_type.SetObjectType(correct_type, false);
 }
@@ -176,7 +182,7 @@ void LandExprNode::BuildScope(shared_ptr<Scope> _scope) {
   }
   for (auto or_expr : or_exprs) {
     or_expr->BuildScope(scope);
-    Assert(or_expr->value_type.GetObjectType() == correct_type, "not bool in lor expr");
+    MyAssert(or_expr->value_type.GetObjectType() == correct_type, "not bool in lor expr");
   }
   value_type.SetObjectType(correct_type, false);
 }
@@ -190,7 +196,7 @@ void OrExprNode::BuildScope(shared_ptr<Scope> _scope) {
   }
   for (auto xor_expr : xor_exprs) {
     xor_expr->BuildScope(scope);
-    Assert(xor_expr->value_type.GetObjectType() == correct_type, "not int in or expr");
+    MyAssert(xor_expr->value_type.GetObjectType() == correct_type, "not int in or expr");
   }
   value_type.SetObjectType(correct_type, false);
 }
@@ -204,7 +210,7 @@ void XorExprNode::BuildScope(shared_ptr<Scope> _scope) {
   }
   for (auto and_expr : and_exprs) {
     and_expr->BuildScope(scope);
-    Assert(and_expr->value_type.GetObjectType() == correct_type, "not int in xor expr");
+    MyAssert(and_expr->value_type.GetObjectType() == correct_type, "not int in xor expr");
   }
   value_type.SetObjectType(correct_type, false);
 }
@@ -218,7 +224,7 @@ void AndExprNode::BuildScope(shared_ptr<Scope> _scope) {
   }
   for (auto equal_expr : equal_exprs) {
     equal_expr->BuildScope(scope);
-    Assert(equal_expr->value_type.GetObjectType() == correct_type, "not int in xor expr");
+    MyAssert(equal_expr->value_type.GetObjectType() == correct_type, "not int in xor expr");
   }
   value_type.SetObjectType(correct_type, false);
 }
@@ -236,15 +242,15 @@ void EqualityExprNode::BuildScope(shared_ptr<Scope> _scope) {
   auto iter = relation_exprs.begin();
   auto first_type = (*iter)->value_type.GetObjectType();
   auto second_type = (*(++iter))->value_type.GetObjectType();
-  Assert(first_type == second_type, "different type equality");
+  MyAssert(first_type == second_type, "different type equality");
   for (++iter; iter != relation_exprs.end(); ++iter) {
-    Assert((*iter)->value_type.GetObjectType() == correct_type, "different type equality");
+    MyAssert((*iter)->value_type.GetObjectType() == correct_type, "different type equality");
   }
   value_type.SetObjectType(correct_type, false);
 }
 void RelationExprNode::BuildScope(shared_ptr<Scope> _scope) {
   scope = _scope;
-  Assert(shift_exprs.size() <= 2, "invaild relation expr : too many exprs");
+  MyAssert(shift_exprs.size() <= 2, "invaild relation expr : too many exprs");
   if (shift_exprs.size() == 1) {
     shift_exprs.front()->BuildScope(scope);
     value_type = shift_exprs.front()->value_type;
@@ -254,8 +260,8 @@ void RelationExprNode::BuildScope(shared_ptr<Scope> _scope) {
   shift_exprs.back()->BuildScope(scope);
   auto left_type = shift_exprs.front()->value_type.GetObjectType();
   auto right_type = shift_exprs.back()->value_type.GetObjectType();
-  Assert(left_type == right_type, "invaild relation expr : different type");
-  Assert(left_type == kIntType || left_type == kStringType, "invaild relation expr : not vaild type");
+  MyAssert(left_type == right_type, "invaild relation expr : different type");
+  MyAssert(left_type == kIntType || left_type == kStringType, "invaild relation expr : not vaild type");
   value_type.SetObjectType(kBoolType, false);
 }
 void ShiftExprNode::BuildScope(shared_ptr<Scope> _scope) {
@@ -268,7 +274,7 @@ void ShiftExprNode::BuildScope(shared_ptr<Scope> _scope) {
   }
   for (auto add_expr : add_exprs) {
     add_expr->BuildScope(scope);
-    Assert(add_expr->value_type.GetObjectType() == correct_type, "not int in shift expr");
+    MyAssert(add_expr->value_type.GetObjectType() == correct_type, "not int in shift expr");
   }
   value_type.SetObjectType(correct_type, false);
 }
@@ -283,9 +289,9 @@ void AddExprNode::BuildScope(shared_ptr<Scope> _scope) {
     multi_expr->BuildScope(scope);
   }
   auto first_type = multi_exprs.front()->value_type.GetObjectType();
-  Assert(first_type == kIntType || first_type == kStringType, "not int or string in add expr");
+  MyAssert(first_type == kIntType || first_type == kStringType, "not int or string in add expr");
   for (auto multi_expr : multi_exprs) {
-    Assert(multi_expr->value_type.GetObjectType() == first_type, "not same type in add expr");
+    MyAssert(multi_expr->value_type.GetObjectType() == first_type, "not same type in add expr");
   }
   value_type.SetObjectType(first_type, false);
 }
@@ -299,7 +305,7 @@ void MultiExprNode::BuildScope(shared_ptr<Scope> _scope) {
   }
   for (auto unary_expr : unary_exprs) {
     unary_expr->BuildScope(scope);
-    Assert(unary_expr->value_type.GetObjectType() == correct_type, "not int in shift expr");
+    MyAssert(unary_expr->value_type.GetObjectType() == correct_type, "not int in shift expr");
   }
   value_type.SetObjectType(correct_type, false);
 }
@@ -316,18 +322,18 @@ void UnaryExprNode::BuildScope(shared_ptr<Scope> _scope) {
     switch (prefix_unary_op) {
       case kPlusPlus:
       case kMinusMinus:
-        Assert(value_type.object_leftvalue, "wrong self-crease : not a left value");
-        Assert(value_type.GetObjectType() == kIntType, "wrong self-crease : not a int value");
+        MyAssert(value_type.object_leftvalue, "wrong self-crease : not a left value");
+        MyAssert(value_type.GetObjectType() == kIntType, "wrong self-crease : not a int value");
         value_type.SetObjectType(kIntType, true);
         break;
       case kTilde:
       case kMinus:
 
-        Assert(value_type.GetObjectType() == kIntType, "wrong prefix unary op : not a int value");
+        MyAssert(value_type.GetObjectType() == kIntType, "wrong prefix unary op : not a int value");
         value_type.SetObjectType(kIntType, false);
         break;
       case kNot:
-        Assert(value_type.GetObjectType() == kBoolType, "wrong not op : not a bool value");
+        MyAssert(value_type.GetObjectType() == kBoolType, "wrong not op : not a bool value");
         break;
     }
   }
@@ -338,16 +344,16 @@ void PostfixExprNode::BuildScope(shared_ptr<Scope> _scope) {
   value_type = primary_expr->value_type;
   for (auto suffix_op : suffix_ops) {
     if (AnyIs<SuffixUnaryOp>(suffix_op)) {
-      Assert(value_type.object_leftvalue, "wrong suffix unary op : not left value");
-      Assert(value_type.GetObjectType() == kIntType, "wrong suffix unary op : not int type");
+      MyAssert(value_type.object_leftvalue, "wrong suffix unary op : not left value");
+      MyAssert(value_type.GetObjectType() == kIntType, "wrong suffix unary op : not int type");
       value_type.SetObjectType(kIntType, false);
     } else if (AnyIs<Member>(suffix_op)) {
       auto member_op = AnyCast<Member>(suffix_op);
       auto obj_type = value_type.GetObjectType();
       if (obj_type.dim) {
         // array obj
-        Assert(member_op.member_identifier == "size",
-               "wrong member : array has no member called : \"" + member_op.member_identifier + "\"");
+        MyAssert(member_op.member_identifier == "size",
+                 "wrong member : array has no member called : \"" + member_op.member_identifier + "\"");
         value_type.SetFuncType({kIntType, {}});
       } else {
         value_type = scope->GetClassMember(obj_type.type_identifier, member_op.member_identifier);
@@ -355,11 +361,11 @@ void PostfixExprNode::BuildScope(shared_ptr<Scope> _scope) {
     } else if (auto arg_list_node = AnyCastPtr<ArgListNode>(suffix_op)) {
       arg_list_node->BuildScope(scope);
       auto func_type = value_type.GetFuncType();
-      value_type.SetObjectType(func_type.AcceptArgList(arg_list_node->type_list), true);  // todo?
+      value_type.SetObjectType(func_type.AcceptArgList(arg_list_node->type_list), false);  // todo?
     } else if (auto array_index = AnyCastPtr<ArrayIndexNode>(suffix_op)) {
       array_index->BuildScope(scope);
       auto obj_type = value_type.GetObjectType();
-      Assert(obj_type.dim, "wrong array index : not a array obj");
+      MyAssert(obj_type.dim, "wrong array index : not a array obj");
       --obj_type.dim;
       value_type.SetObjectType(obj_type, true);
     }
@@ -387,22 +393,29 @@ void LambdaExprNode::BuildScope(shared_ptr<Scope> _scope) {
   scope = make_shared<Scope>(_scope, !ref);
   args_def->BuildScope(scope);
   body->BuildScope(scope, false);
-  Assert(body->ret_type.have_ret, "lambda dont have ret");
+  MyAssert(body->ret_type.have_ret, "lambda dont have ret");
   value_type.SetFuncType({body->ret_type.type, args_def->GetArgTypeList()});
 }
 void NewExprNode::BuildScope(shared_ptr<Scope> _scope) {
   scope = _scope;
+  if (is_array) {
+    for (auto array_idx : array_idxs) {
+      array_idx->BuildScope(scope);
+    }
+  }
+  scope->CheckClass(type.type_identifier);
+  MyAssert(type.type_identifier != "void", "wrong new : new void");
   value_type.SetObjectType(type, true);
 }
 void ArrayIndexNode::BuildScope(shared_ptr<Scope> _scope) {
   scope = _scope;
   idx_expr->BuildScope(scope);
-  Assert(idx_expr->value_type.GetObjectType() == kIntType, "wrong array idx : not int expr");
+  MyAssert(idx_expr->value_type.GetObjectType() == kIntType, "wrong array idx : not int expr");
 }
 void IfStmtNode::BuildScope(shared_ptr<Scope> _scope) {
   scope = _scope;
   condition_expr->BuildScope(scope);
-  Assert(condition_expr->value_type.GetObjectType() == kBoolType, "wrong condition expr : not a bool expr");
+  MyAssert(condition_expr->value_type.GetObjectType() == kBoolType, "wrong condition expr : not a bool expr");
   block->BuildScope(scope);
   ret_type.AddRet(block->ret_type);
   if (have_else) {
@@ -413,7 +426,7 @@ void IfStmtNode::BuildScope(shared_ptr<Scope> _scope) {
 void WhileStmtNode::BuildScope(shared_ptr<Scope> _scope) {
   scope = _scope;
   condition_expr->BuildScope(scope);
-  Assert(condition_expr->value_type.GetObjectType() == kBoolType, "wrong condition expr : not a bool expr");
+  MyAssert(condition_expr->value_type.GetObjectType() == kBoolType, "wrong condition expr : not a bool expr");
   block->BuildScope(scope);
   ret_type.AddRet(block->ret_type);
 }
@@ -421,16 +434,16 @@ void ForStmtNode::BuildScope(shared_ptr<Scope> _scope) {
   scope = _scope;
   if (have_init_expr) {
     init_expr->BuildScope(scope);
-    Assert(init_expr->value_type.have_object_type, "outside expression must be object");
+    MyAssert(init_expr->value_type.have_object_type, "outside expression must be object");
   }
   if (have_condition_expr) {
     condition_expr->BuildScope(scope);
-    Assert(condition_expr->value_type.have_object_type, "outside expression must be object");
-    Assert(condition_expr->value_type.GetObjectType() == kBoolType, "wrong condition expr : not a bool expr");
+    MyAssert(condition_expr->value_type.have_object_type, "outside expression must be object");
+    MyAssert(condition_expr->value_type.GetObjectType() == kBoolType, "wrong condition expr : not a bool expr");
   }
   if (have_step_expr) {
     step_expr->BuildScope(scope);
-    Assert(step_expr->value_type.have_object_type, "outside expression must be object");
+    MyAssert(step_expr->value_type.have_object_type, "outside expression must be object");
   }
   block->BuildScope(scope);
   ret_type.AddRet(block->ret_type);
@@ -439,15 +452,15 @@ void ReturnStmtNode::BuildScope(shared_ptr<Scope> _scope) {
   scope = _scope;
   if (!have_ret_expr) {
     ret_type.AddRet({"void"});
-  }else{
+  } else {
     ret_expr->BuildScope(scope);
-    Assert(ret_expr->value_type.have_object_type, "outside expression must be object");
+    MyAssert(ret_expr->value_type.have_object_type, "outside expression must be object");
     ret_type.AddRet(ret_expr->value_type.GetObjectType());
   }
 }
 void ExprStmtNode::BuildScope(shared_ptr<Scope> _scope) {
   scope = _scope;
   expr->BuildScope(scope);
-  Assert(expr->value_type.have_object_type, "outside expression must be object");
+  MyAssert(expr->value_type.have_object_type, "outside expression must be object");
 }
 };  // namespace AST

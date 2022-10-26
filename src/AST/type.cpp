@@ -1,4 +1,3 @@
-#pragma once
 #include "type.h"
 
 #include <bits/stdc++.h>
@@ -14,7 +13,7 @@ ObjectType::ObjectType(MxParser::TypeNameContext* ctx)
     : type_identifier(ctx->basicType()->getText()), dim(ctx->LeftBracket().size()) {}
 
 bool ObjectType::operator==(const ObjectType& rhs) const {
-  return (type_identifier == "null" && rhs.IsBasicType()) || (rhs.type_identifier == "null" && IsBasicType()) ||
+  return (type_identifier == "null" && !rhs.IsBasicType()) || (rhs.type_identifier == "null" && !IsBasicType()) ||
          type_identifier == rhs.type_identifier && dim == rhs.dim;
 }
 bool ObjectType::operator!=(const ObjectType& rhs) const { return !(*this == rhs); }
@@ -24,10 +23,10 @@ bool ObjectType::IsBasicType() const {
 }
 
 ObjectType FuncType::AcceptArgList(const list<ObjectType>& args) {
-  if (args.size() != arg_type.size()) throw("wrong arg list : wrong arg num");
+  if (args.size() != arg_type.size()) throw MyException("wrong arg list : wrong arg num");
   auto iter = args.begin();
   for (auto def_type : arg_type) {
-    Assert(def_type == *iter, "wrong arg type");
+    MyAssert(def_type == *iter, "wrong arg type");
     ++iter;
   }
   return ret_type;
@@ -52,6 +51,8 @@ void RetType::AddRet(ObjectType ret_type) {
 void RetType::AddRet(RetType obj) {
   if (obj.have_ret) AddRet(obj.type);
 }
+
+bool RetType::IsVoid() const { return !have_ret || type == kVoidType; }
 
 bool RetType::operator==(const RetType& rhs) const {
   if (have_ret != rhs.have_ret) return false;
