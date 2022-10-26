@@ -25,6 +25,8 @@ public:
 
     virtual std::any visitVarDef(MxParser::VarDefContext *context) = 0;
 
+    virtual std::any visitSingleVarDef(MxParser::SingleVarDefContext *context) = 0;
+
     virtual std::any visitClassDef(MxParser::ClassDefContext *context) = 0;
 
     virtual std::any visitClassBody(MxParser::ClassBodyContext *context) = 0;

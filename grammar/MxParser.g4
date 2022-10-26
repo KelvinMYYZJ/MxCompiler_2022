@@ -4,10 +4,9 @@ options {
 }
 prog: (definition)* EOF;
 definition: funcDef | varDef | classDef;
-varDef:
-	typeName Identifier (Assign expression)? (
-		Comma Identifier (Assign expression)?
-	)*? Semi;
+varDef: typeName singleVarDef ( Comma singleVarDef)*? Semi;
+
+singleVarDef: Identifier (Assign expression)?;
 
 classDef: Class Identifier classBody Semi;
 classBody: LeftBrace memberStmt* RightBrace;

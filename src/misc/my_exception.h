@@ -11,3 +11,5 @@ class MyException : std::exception {
   ~MyException();
   const char* What() const;
 };
+
+void Assert(bool condition,const MyException& exception);

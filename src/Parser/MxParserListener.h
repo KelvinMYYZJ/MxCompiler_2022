@@ -23,6 +23,9 @@ public:
   virtual void enterVarDef(MxParser::VarDefContext *ctx) = 0;
   virtual void exitVarDef(MxParser::VarDefContext *ctx) = 0;
 
+  virtual void enterSingleVarDef(MxParser::SingleVarDefContext *ctx) = 0;
+  virtual void exitSingleVarDef(MxParser::SingleVarDefContext *ctx) = 0;
+
   virtual void enterClassDef(MxParser::ClassDefContext *ctx) = 0;
   virtual void exitClassDef(MxParser::ClassDefContext *ctx) = 0;
 

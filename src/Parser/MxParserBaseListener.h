@@ -25,6 +25,9 @@ public:
   virtual void enterVarDef(MxParser::VarDefContext * /*ctx*/) override { }
   virtual void exitVarDef(MxParser::VarDefContext * /*ctx*/) override { }
 
+  virtual void enterSingleVarDef(MxParser::SingleVarDefContext * /*ctx*/) override { }
+  virtual void exitSingleVarDef(MxParser::SingleVarDefContext * /*ctx*/) override { }
+
   virtual void enterClassDef(MxParser::ClassDefContext * /*ctx*/) override { }
   virtual void exitClassDef(MxParser::ClassDefContext * /*ctx*/) override { }
 

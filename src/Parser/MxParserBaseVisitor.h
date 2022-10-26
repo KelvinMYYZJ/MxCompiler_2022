@@ -27,6 +27,10 @@ public:
     return visitChildren(ctx);
   }
 
+  virtual std::any visitSingleVarDef(MxParser::SingleVarDefContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
   virtual std::any visitClassDef(MxParser::ClassDefContext *ctx) override {
     return visitChildren(ctx);
   }

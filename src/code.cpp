@@ -5,6 +5,7 @@
 #include "MxParser.h"
 #include "MxParserBaseListener.h"
 #include "antlr4-runtime.h"
+#include "gscope.h"
 #include "my_error_listener.h"
 #include "my_exception.h"
 #ifndef ONLINE_JUDGE
@@ -21,7 +22,7 @@ signed main() {
 // freopen("!output.txt","w",stdout);
 #endif
   try {
-    ANTLRInputStream input(std::cin);
+    ANTLRInputStream input(cin);
     MxLexer lexer(&input);
     lexer.removeErrorListeners();
     MxErrorListener error_listener;
@@ -33,8 +34,9 @@ signed main() {
     parser.addErrorListener(&error_listener);
     auto *parse_tree_root = parser.prog();
     AST::ProgNode ast_root(parse_tree_root);
+    ast_root.BuildScope(make_shared<GScope>());
   } catch (const MyException &exp) {
-    std::cerr << "error!!" << std::endl << exp.What() << std::endl;
+    cerr << "error!!" << endl << exp.What() << endl;
     return 1;
   }
   return 0;

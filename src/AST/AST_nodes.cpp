@@ -16,7 +16,17 @@ ProgNode::ProgNode(MxParser::ProgContext* ctx) {
   }
 }
 VarDefNode::VarDefNode(MxParser::VarDefContext* ctx) {
-  //?
+  type = ObjectType(ctx->typeName());
+  for (auto single_var_def : ctx->singleVarDef()) {
+    VarInitPair now_var;
+    now_var.var_identifier = single_var_def->Identifier()->getText();
+    if (auto now_expr = single_var_def->expression()) {
+      now_var.have_expr = true;
+      now_var.expr = make_shared<ExpressionNode>(now_expr);
+    } else
+      now_var.have_expr = false;
+    var_defs.push_back(now_var);
+  }
 }
 ClassDefNode::ClassDefNode(MxParser::ClassDefContext* ctx) {
   class_identifier = ctx->Identifier()->getText();
@@ -54,30 +64,47 @@ ConstructFuncDefNode::ConstructFuncDefNode(MxParser::ConstructFuncDefContext* ct
   func_identifier = ctx->Identifier()->getText();
   body = make_shared<StmtBlockNode>(ctx->stmtBlock());
 }
-StmtBlockNode::StmtBlockNode(MxParser::StmtBlockContext* ctx) {
-  for (auto now_stmt : ctx->funcStmt()) {
-    if (auto nxt_node = now_stmt->varDef()) {
-      stmts.push_back(make_shared<VarDefNode>(nxt_node));
-    } else if (auto nxt_node = now_stmt->ifStmt()) {
-      stmts.push_back(make_shared<IfStmtNode>(nxt_node));
-    } else if (auto nxt_node = now_stmt->whileStmt()) {
-      stmts.push_back(make_shared<WhileStmtNode>(nxt_node));
-    } else if (auto nxt_node = now_stmt->forStmt()) {
-      stmts.push_back(make_shared<ForStmtNode>(nxt_node));
-    } else if (auto nxt_node = now_stmt->returnStmt()) {
-      stmts.push_back(make_shared<ReturnStmtNode>(nxt_node));
-    } else if (auto nxt_node = now_stmt->breakStmt()) {
-      stmts.push_back(make_shared<BreakStmtNode>(nxt_node));
-    } else if (auto nxt_node = now_stmt->continueStmt()) {
-      stmts.push_back(make_shared<ContinueStmtNode>(nxt_node));
-    } else if (auto nxt_node = now_stmt->exprStmt()) {
-      stmts.push_back(make_shared<ExprStmtNode>(nxt_node));
-    } else if (auto nxt_node = now_stmt->stmtBlock()) {
-      stmts.push_back(make_shared<StmtBlockNode>(nxt_node));
-    } else if (auto nxt_node = now_stmt->blankStmt()) {
-      continue;
-    } else
-      throw MyException("Unknown error in AST building");
+void StmtBlockNode::AddStmtNode(MxParser::FuncStmtContext* func_stmt) {
+  if (auto nxt_node = func_stmt->varDef()) {
+    stmts.push_back(make_shared<VarDefNode>(nxt_node));
+  } else if (auto nxt_node = func_stmt->ifStmt()) {
+    stmts.push_back(make_shared<IfStmtNode>(nxt_node, in_loop));
+  } else if (auto nxt_node = func_stmt->whileStmt()) {
+    stmts.push_back(make_shared<WhileStmtNode>(nxt_node));
+  } else if (auto nxt_node = func_stmt->forStmt()) {
+    stmts.push_back(make_shared<ForStmtNode>(nxt_node));
+  } else if (auto nxt_node = func_stmt->returnStmt()) {
+    stmts.push_back(make_shared<ReturnStmtNode>(nxt_node));
+  } else if (auto nxt_node = func_stmt->breakStmt()) {
+    Assert(in_loop, "break outside a loop");
+    stmts.push_back(make_shared<BreakStmtNode>(nxt_node));
+  } else if (auto nxt_node = func_stmt->continueStmt()) {
+    Assert(in_loop, "continue outside a loop");
+    stmts.push_back(make_shared<ContinueStmtNode>(nxt_node));
+  } else if (auto nxt_node = func_stmt->exprStmt()) {
+    stmts.push_back(make_shared<ExprStmtNode>(nxt_node));
+  } else if (auto nxt_node = func_stmt->stmtBlock()) {
+    stmts.push_back(make_shared<StmtBlockNode>(nxt_node, in_loop));
+  } else if (auto nxt_node = func_stmt->blankStmt()) {
+    return;
+  } else
+    throw MyException("Unknown error in AST building");
+}
+
+StmtBlockNode::StmtBlockNode(MxParser::StmtBlockContext* ctx, bool _in_loop) {
+  in_loop = _in_loop;
+  for (auto func_stmt : ctx->funcStmt()) {
+    AddStmtNode(func_stmt);
+  }
+}
+StmtBlockNode::StmtBlockNode(MxParser::BlockContext* ctx, bool _in_loop) {
+  in_loop = _in_loop;
+  if (auto stmt_block = ctx->stmtBlock()) {
+    for (auto func_stmt : stmt_block->funcStmt()) {
+      AddStmtNode(func_stmt);
+    }
+  } else {
+    AddStmtNode(ctx->funcStmt());
   }
 }
 ExpressionNode::ExpressionNode(MxParser::ExpressionContext* ctx) {
@@ -192,7 +219,7 @@ MultiExprNode::MultiExprNode(MxParser::MultiExprContext* ctx) {
 UnaryExprNode::UnaryExprNode(MxParser::UnaryExprContext* ctx) {
   auto now_expr = ctx;
   while (now_expr->unaryExpr()) {
-    if (!now_expr->prefixUnaryOp()) throw MyException("Unknown error in AST building");
+    Assert(now_expr->prefixUnaryOp(), "Unknown error in AST building");
     auto now_prefix_op = now_expr->prefixUnaryOp();
     if (now_prefix_op->PlusPlus()) {
       prefix_unary_ops.push_back(kPlusPlus);
@@ -208,6 +235,7 @@ UnaryExprNode::UnaryExprNode(MxParser::UnaryExprContext* ctx) {
       throw MyException("Unknown error in AST building");
     now_expr = now_expr->unaryExpr();
   }
+  prefix_unary_ops.reverse();  // inner op is in front;
   // now, now_expr is a postfixExpr or newExpr
   if (auto next_node = now_expr->postfixExpr()) {
     expr = make_shared<PostfixExprNode>(next_node);
@@ -244,6 +272,7 @@ PostfixExprNode::PostfixExprNode(MxParser::PostfixExprContext* ctx) {
 }
 PrimaryExprNode::PrimaryExprNode(MxParser::PrimaryExprContext* ctx) {
   if (auto nxt_node = ctx->literal()) {
+    expr = make_shared<LiteralNode>(nxt_node);
   } else if (auto nxt_node = ctx->This()) {
     expr = This();
   } else if (auto nxt_node = ctx->expression()) {
@@ -262,9 +291,9 @@ LambdaExprNode::LambdaExprNode(MxParser::LambdaExprContext* ctx) {
 }
 NewExprNode::NewExprNode(MxParser::NewExprContext* ctx) {
   if (auto now_node = ctx->newObjExpr()) {
-    type = Type(now_node->basicType()->getText(), 0);
+    type = ObjectType(now_node->basicType()->getText(), 0);
   } else if (auto now_node = ctx->newArrayExpr()) {
-    type = Type();  // todo
+    type = ObjectType();  // todo
   } else
     throw MyException("Unknown error in AST building");
 }
@@ -275,31 +304,32 @@ LiteralNode::LiteralNode(MxParser::LiteralContext* ctx) {
   if (auto now_literal = ctx->IntLiteral()) {
     value = stoi(now_literal->getText());
   } else if (auto now_literal = ctx->True()) {
-    type = Type("bool", 0);
+    type = ObjectType("bool", 0);
     value = true;
   } else if (auto now_literal = ctx->False()) {
-    type = Type("bool", 0);
+    type = ObjectType("bool", 0);
     value = false;
   } else if (auto now_literal = ctx->NullLiteral()) {
-    type = Type("null", 0);
+    type = ObjectType("null", 0);
   } else if (auto now_literal = ctx->StringLiteral()) {
-    type = Type("string", 0);
+    type = ObjectType("string", 0);
     value = string(now_literal->getText().c_str() + 1);
     any_cast<string>(value).pop_back();
   }
 }
-IfStmtNode::IfStmtNode(MxParser::IfStmtContext* ctx) {
+IfStmtNode::IfStmtNode(MxParser::IfStmtContext* ctx, bool _in_loop) {
+  in_loop = _in_loop;
   condition_expr = make_shared<ExpressionNode>(ctx->condition()->expression());
-  block = make_shared<BlockNode>(ctx->block());
+  block = make_shared<StmtBlockNode>(ctx->block());
   if (auto now_else_stmt = ctx->elseStmt()) {
     have_else = true;
-    else_block = make_shared<BlockNode>(ctx->elseStmt()->block());
+    else_block = make_shared<StmtBlockNode>(ctx->elseStmt()->block());
   } else
     have_else = false;
 }
 WhileStmtNode::WhileStmtNode(MxParser::WhileStmtContext* ctx) {
   condition_expr = make_shared<ExpressionNode>(ctx->condition()->expression());
-  block = make_shared<BlockNode>(ctx->block());
+  block = make_shared<StmtBlockNode>(ctx->block(), true);
 }
 ForStmtNode::ForStmtNode(MxParser::ForStmtContext* ctx) {
   if (auto now_init_expr = ctx->forCondition()->expression(0)) {
@@ -317,43 +347,12 @@ ForStmtNode::ForStmtNode(MxParser::ForStmtContext* ctx) {
     step_expr = make_shared<ExpressionNode>(now_step_expr);
   } else
     have_step_expr = false;
-  block = make_shared<BlockNode>(ctx->block());
-}
-BlockNode::BlockNode(MxParser::BlockContext* ctx) {
-  auto stmt_parser = [&](MxParser::FuncStmtContext* stmt) -> void {
-    if (auto now_stmt = stmt->varDef()) {
-      stmts.push_back(make_shared<VarDefNode>(now_stmt));
-    } else if (auto now_stmt = stmt->ifStmt()) {
-      stmts.push_back(make_shared<IfStmtNode>(now_stmt));
-    } else if (auto now_stmt = stmt->whileStmt()) {
-      stmts.push_back(make_shared<WhileStmtNode>(now_stmt));
-    } else if (auto now_stmt = stmt->forStmt()) {
-      stmts.push_back(make_shared<ForStmtNode>(now_stmt));
-    } else if (auto now_stmt = stmt->returnStmt()) {
-      stmts.push_back(make_shared<ReturnStmtNode>(now_stmt));
-    } else if (auto now_stmt = stmt->breakStmt()) {
-      stmts.push_back(make_shared<BreakStmtNode>(now_stmt));
-    } else if (auto now_stmt = stmt->continueStmt()) {
-      stmts.push_back(make_shared<ContinueStmtNode>(now_stmt));
-    } else if (auto now_stmt = stmt->exprStmt()) {
-      stmts.push_back(make_shared<ExprStmtNode>(now_stmt));
-    } else if (auto now_stmt = stmt->stmtBlock()) {
-      stmts.push_back(make_shared<StmtBlockNode>(now_stmt));
-    } else if (auto now_stmt = stmt->blankStmt()) {
-      return;
-    } else
-      throw MyException("Unknown error in AST building");
-  };
-  if (auto now_block = ctx->stmtBlock()) {
-    for (auto now_stmt : now_block->funcStmt()) {
-      stmt_parser(now_stmt);
-    }
-  } else if (auto now_block = ctx->funcStmt()) {
-    stmt_parser(now_block);
-  }
+  block = make_shared<StmtBlockNode>(ctx->block(), true);
 }
 ReturnStmtNode::ReturnStmtNode(MxParser::ReturnStmtContext* ctx) {
-  ret_expr = make_shared<ExpressionNode>(ctx->expression());
+  if ((have_ret_expr = ctx->expression())) {
+    ret_expr = make_shared<ExpressionNode>(ctx->expression());
+  }
 }
 BreakStmtNode::BreakStmtNode(MxParser::BreakStmtContext* ctx) {}
 ContinueStmtNode::ContinueStmtNode(MxParser::ContinueStmtContext* ctx) {}

@@ -26,20 +26,21 @@ public:
   };
 
   enum {
-    RuleProg = 0, RuleDefinition = 1, RuleVarDef = 2, RuleClassDef = 3, 
-    RuleClassBody = 4, RuleFuncDef = 5, RuleArgListDef = 6, RuleArgList = 7, 
-    RuleConstructFuncDef = 8, RuleTypeName = 9, RuleBasicType = 10, RuleStmtBlock = 11, 
-    RuleExpression = 12, RuleAssignExpr = 13, RuleOrOrExpr = 14, RuleAndAndExpr = 15, 
-    RuleOrExpr = 16, RuleXorExpr = 17, RuleAndExpr = 18, RuleEqualityExpr = 19, 
-    RuleRelationExpr = 20, RuleShiftExpr = 21, RuleAddExpr = 22, RuleMultiExpr = 23, 
-    RuleUnaryExpr = 24, RulePostfixExpr = 25, RulePrimaryExpr = 26, RuleLambdaExpr = 27, 
-    RuleNewExpr = 28, RuleNewArrayExpr = 29, RuleNewObjExpr = 30, RuleArrayIndex = 31, 
-    RuleArraySize = 32, RuleEqualOp = 33, RuleRelationOp = 34, RuleShiftOp = 35, 
-    RuleAddOp = 36, RuleMultiOp = 37, RulePrefixUnaryOp = 38, RuleSuffixUnaryOp = 39, 
-    RuleLiteral = 40, RuleFuncStmt = 41, RuleIfStmt = 42, RuleElseStmt = 43, 
-    RuleWhileStmt = 44, RuleForStmt = 45, RuleMemberStmt = 46, RuleLeftValue = 47, 
-    RuleCondition = 48, RuleForCondition = 49, RuleBlock = 50, RuleReturnStmt = 51, 
-    RuleBreakStmt = 52, RuleContinueStmt = 53, RuleExprStmt = 54, RuleBlankStmt = 55
+    RuleProg = 0, RuleDefinition = 1, RuleVarDef = 2, RuleSingleVarDef = 3, 
+    RuleClassDef = 4, RuleClassBody = 5, RuleFuncDef = 6, RuleArgListDef = 7, 
+    RuleArgList = 8, RuleConstructFuncDef = 9, RuleTypeName = 10, RuleBasicType = 11, 
+    RuleStmtBlock = 12, RuleExpression = 13, RuleAssignExpr = 14, RuleOrOrExpr = 15, 
+    RuleAndAndExpr = 16, RuleOrExpr = 17, RuleXorExpr = 18, RuleAndExpr = 19, 
+    RuleEqualityExpr = 20, RuleRelationExpr = 21, RuleShiftExpr = 22, RuleAddExpr = 23, 
+    RuleMultiExpr = 24, RuleUnaryExpr = 25, RulePostfixExpr = 26, RulePrimaryExpr = 27, 
+    RuleLambdaExpr = 28, RuleNewExpr = 29, RuleNewArrayExpr = 30, RuleNewObjExpr = 31, 
+    RuleArrayIndex = 32, RuleArraySize = 33, RuleEqualOp = 34, RuleRelationOp = 35, 
+    RuleShiftOp = 36, RuleAddOp = 37, RuleMultiOp = 38, RulePrefixUnaryOp = 39, 
+    RuleSuffixUnaryOp = 40, RuleLiteral = 41, RuleFuncStmt = 42, RuleIfStmt = 43, 
+    RuleElseStmt = 44, RuleWhileStmt = 45, RuleForStmt = 46, RuleMemberStmt = 47, 
+    RuleLeftValue = 48, RuleCondition = 49, RuleForCondition = 50, RuleBlock = 51, 
+    RuleReturnStmt = 52, RuleBreakStmt = 53, RuleContinueStmt = 54, RuleExprStmt = 55, 
+    RuleBlankStmt = 56
   };
 
   explicit MxParser(antlr4::TokenStream *input);
@@ -62,6 +63,7 @@ public:
   class ProgContext;
   class DefinitionContext;
   class VarDefContext;
+  class SingleVarDefContext;
   class ClassDefContext;
   class ClassBodyContext;
   class FuncDefContext;
@@ -155,13 +157,9 @@ public:
     VarDefContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     TypeNameContext *typeName();
-    std::vector<antlr4::tree::TerminalNode *> Identifier();
-    antlr4::tree::TerminalNode* Identifier(size_t i);
+    std::vector<SingleVarDefContext *> singleVarDef();
+    SingleVarDefContext* singleVarDef(size_t i);
     antlr4::tree::TerminalNode *Semi();
-    std::vector<antlr4::tree::TerminalNode *> Assign();
-    antlr4::tree::TerminalNode* Assign(size_t i);
-    std::vector<ExpressionContext *> expression();
-    ExpressionContext* expression(size_t i);
     std::vector<antlr4::tree::TerminalNode *> Comma();
     antlr4::tree::TerminalNode* Comma(size_t i);
 
@@ -173,6 +171,23 @@ public:
   };
 
   VarDefContext* varDef();
+
+  class  SingleVarDefContext : public antlr4::ParserRuleContext {
+  public:
+    SingleVarDefContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    antlr4::tree::TerminalNode *Identifier();
+    antlr4::tree::TerminalNode *Assign();
+    ExpressionContext *expression();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+
+    virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+   
+  };
+
+  SingleVarDefContext* singleVarDef();
 
   class  ClassDefContext : public antlr4::ParserRuleContext {
   public:
