@@ -4,13 +4,14 @@
 #include "my_exception.h"
 #include "type.h"
 #include "value_type.h"
+#include "var_info.h"
 using namespace std;
 
 class Scope {
  public:
   bool in_lambda;
   shared_ptr<Scope> parent;
-  shared_ptr<unordered_map<string, ObjectType>> vars;
+  shared_ptr<unordered_map<string, VarInfo>> vars;
   virtual ValueType GetIdentifierType(const string& identifier) const;
   virtual void CheckIdentifier(
       const string& identifier) const;  // ensure the var or func identifier not used before as a class identifier.

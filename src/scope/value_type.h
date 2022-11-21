@@ -2,6 +2,7 @@
 #include <bits/stdc++.h>
 
 #include "type.h"
+#include "var_info.h"
 using namespace std;
 
 class ValueType {
@@ -10,6 +11,7 @@ class ValueType {
   ObjectType object_type;
   bool have_object_type;
   bool object_leftvalue;
+  VarInfo* var_info;
   FuncType func_type;
   bool have_func_type;
   void AddObjectType(const ObjectType& _object_type, bool is_leftvalue);

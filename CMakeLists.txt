@@ -5,7 +5,15 @@ set(CMAKE_BUILD_TYPE "Debug")
 add_compile_options(-pthread)
 add_link_options(-pthread)
 # ------------------the following is to be modified----------------------------
-set(lib_dir_names Parser misc listener vistor AST scope semi)
+set(lib_dir_names
+    Parser
+    misc
+    listener
+    vistor
+    AST
+    scope
+    semi
+    IRbuilder)
 set(program_names code)
 
 # -----------------------------------------------------------------------------
@@ -60,7 +68,7 @@ set(main_base_dir ${src_base_dir})
 foreach(program_name ${program_names})
   set(now_main_file ${main_base_dir}/${program_name}.cpp)
   message("${program_name} ${now_main_file} ${src_files}")
-  add_executable(${program_name} ${now_main_file} ${src_files}) 
+  add_executable(${program_name} ${now_main_file} ${src_files})
   target_include_directories(${program_name} PUBLIC ${lib_dirs})
   target_link_libraries(${program_name} antlr4-cpp-runtime)
 endforeach()
