@@ -1,6 +1,10 @@
 #include <bits/stdc++.h>
+#include <memory>
 
 #include "AST_nodes.h"
+#include "IR.h"
+#include "IR_builder.h"
+#include "IR_printer.h"
 #include "MxLexer.h"
 #include "MxParser.h"
 #include "MxParserBaseListener.h"
@@ -33,8 +37,10 @@ signed main() {
     parser.removeErrorListeners();
     parser.addErrorListener(&error_listener);
     auto *parse_tree_root = parser.prog();
-    AST::ProgNode ast_root(parse_tree_root);
-    ast_root.BuildScope(make_shared<GScope>());
+    auto ast_root = make_shared<AST::ProgNode>(parse_tree_root);
+    ast_root->BuildScope(make_shared<GScope>());
+    shared_ptr<IR::IRBuffer> IR_buffer = IRBuilder().BuildIR(ast_root);
+    IRPrinter().Print(IR_buffer.get(), cerr);
   } catch (const MyException &exp) {
     cerr << "error!!" << endl << exp.What() << endl;
     return 1;

@@ -1,3 +1,4 @@
+#pragma once
 #include <bits/stdc++.h>
 
 #include "MxParser.h"
@@ -46,7 +47,7 @@ class ProgNode {
   shared_ptr<GScope> gscope;
   void BuildScope(shared_ptr<GScope> _gscope);
   list<any> definitions;  // funcDef | varDef | classDef
-  ProgNode(MxParser::ProgContext* ctx);
+  ProgNode(MxParser::ProgContext *ctx);
 };
 class VarDefNode {
  public:
@@ -59,7 +60,7 @@ class VarDefNode {
     shared_ptr<ExpressionNode> expr;
   };
   list<VarInitPair> var_defs;
-  VarDefNode(MxParser::VarDefContext* ctx);
+  VarDefNode(MxParser::VarDefContext *ctx);
 };
 class ClassDefNode {
  public:
@@ -67,7 +68,7 @@ class ClassDefNode {
   void BuildScope();  // only visit children nodes.
   string class_identifier;
   list<any> member_stmts;  // varDef | constructFuncDef | funcDef
-  ClassDefNode(MxParser::ClassDefContext* ctx);
+  ClassDefNode(MxParser::ClassDefContext *ctx);
 };
 class FuncDefNode {
  public:
@@ -77,7 +78,7 @@ class FuncDefNode {
   string func_identifier;
   shared_ptr<ArgListDefNode> args_def;
   shared_ptr<StmtBlockNode> body;
-  FuncDefNode(MxParser::FuncDefContext* ctx);
+  FuncDefNode(MxParser::FuncDefContext *ctx);
   FuncType GetFuncType();
 };
 
@@ -86,7 +87,7 @@ class ArgListDefNode {
   shared_ptr<Scope> scope;
   void BuildScope(shared_ptr<Scope> _scope);
   list<Arg> args;
-  ArgListDefNode(MxParser::ArgListDefContext* ctx);
+  ArgListDefNode(MxParser::ArgListDefContext *ctx);
   list<ObjectType> GetArgTypeList();
 };
 
@@ -96,7 +97,7 @@ class ArgListNode {
   list<ObjectType> type_list;
   void BuildScope(shared_ptr<Scope> _scope);
   list<shared_ptr<ExpressionNode>> args;
-  ArgListNode(MxParser::ArgListContext* ctx);
+  ArgListNode(MxParser::ArgListContext *ctx);
 };
 
 class ConstructFuncDefNode {
@@ -105,22 +106,23 @@ class ConstructFuncDefNode {
   void BuildScope(shared_ptr<Scope> _scope);
   string func_identifier;  // should be the same with class identifier.
   shared_ptr<StmtBlockNode> body;
-  ConstructFuncDefNode(MxParser::ConstructFuncDefContext* ctx);
+  ConstructFuncDefNode(MxParser::ConstructFuncDefContext *ctx);
 };
 
 class StmtBlockNode {
  private:
-  void AddStmtNode(MxParser::FuncStmtContext* func_stmt);
+  void AddStmtNode(MxParser::FuncStmtContext *func_stmt);
 
  public:
   RetType ret_type;
   shared_ptr<Scope> scope;
   void BuildScope(shared_ptr<Scope> _scope, bool create_inner_scope = true);
   bool in_loop;     // can accept break and continue;
-  list<any> stmts;  // varDef | ifStmt | whileStmt | forStmt | returnStmt | breakStmt | continueStmt | exprStmt |
+  list<any> stmts;  // varDef | ifStmt | whileStmt | forStmt | returnStmt |
+                    // breakStmt | continueStmt | exprStmt |
   // multiStmtBlock
-  StmtBlockNode(MxParser::StmtBlockContext* ctx, bool _in_loop = false);
-  StmtBlockNode(MxParser::BlockContext* ctx, bool _in_loop = false);
+  StmtBlockNode(MxParser::StmtBlockContext *ctx, bool _in_loop = false);
+  StmtBlockNode(MxParser::BlockContext *ctx, bool _in_loop = false);
 };
 class ExpressionNode {
  public:
@@ -128,7 +130,7 @@ class ExpressionNode {
   shared_ptr<Scope> scope;
   void BuildScope(shared_ptr<Scope> _scope);
   shared_ptr<AssignExprNode> assign_expr;
-  ExpressionNode(MxParser::ExpressionContext* ctx);
+  ExpressionNode(MxParser::ExpressionContext *ctx);
 };
 class AssignExprNode {
  public:
@@ -138,7 +140,7 @@ class AssignExprNode {
   bool have_left_expr;
   shared_ptr<LorExprNode> left_expr;
   shared_ptr<LorExprNode> lor_expr;
-  AssignExprNode(MxParser::AssignExprContext* ctx);
+  AssignExprNode(MxParser::AssignExprContext *ctx);
 };
 class LorExprNode {
  public:
@@ -146,7 +148,7 @@ class LorExprNode {
   shared_ptr<Scope> scope;
   void BuildScope(shared_ptr<Scope> _scope);
   list<shared_ptr<LandExprNode>> land_exprs;
-  LorExprNode(MxParser::OrOrExprContext* ctx);
+  LorExprNode(MxParser::OrOrExprContext *ctx);
 };
 class LandExprNode {
  public:
@@ -154,7 +156,7 @@ class LandExprNode {
   shared_ptr<Scope> scope;
   void BuildScope(shared_ptr<Scope> _scope);
   list<shared_ptr<OrExprNode>> or_exprs;
-  LandExprNode(MxParser::AndAndExprContext* ctx);
+  LandExprNode(MxParser::AndAndExprContext *ctx);
 };
 class OrExprNode {
  public:
@@ -162,7 +164,7 @@ class OrExprNode {
   shared_ptr<Scope> scope;
   void BuildScope(shared_ptr<Scope> _scope);
   list<shared_ptr<XorExprNode>> xor_exprs;
-  OrExprNode(MxParser::OrExprContext* ctx);
+  OrExprNode(MxParser::OrExprContext *ctx);
 };
 class XorExprNode {
  public:
@@ -170,7 +172,7 @@ class XorExprNode {
   shared_ptr<Scope> scope;
   void BuildScope(shared_ptr<Scope> _scope);
   list<shared_ptr<AndExprNode>> and_exprs;
-  XorExprNode(MxParser::XorExprContext* ctx);
+  XorExprNode(MxParser::XorExprContext *ctx);
 };
 class AndExprNode {
  public:
@@ -178,7 +180,7 @@ class AndExprNode {
   shared_ptr<Scope> scope;
   void BuildScope(shared_ptr<Scope> _scope);
   list<shared_ptr<EqualityExprNode>> equal_exprs;
-  AndExprNode(MxParser::AndExprContext* ctx);
+  AndExprNode(MxParser::AndExprContext *ctx);
 };
 class EqualityExprNode {
  public:
@@ -188,7 +190,7 @@ class EqualityExprNode {
   enum EqualOp { kEqual, kNotEqual };
   list<shared_ptr<RelationExprNode>> relation_exprs;
   list<EqualOp> equal_ops;
-  EqualityExprNode(MxParser::EqualityExprContext* ctx);
+  EqualityExprNode(MxParser::EqualityExprContext *ctx);
 };
 class RelationExprNode {
  public:
@@ -198,7 +200,7 @@ class RelationExprNode {
   enum RelationOp { kLess, kGreater, kLessEqual, kGreaterEqual };
   list<shared_ptr<ShiftExprNode>> shift_exprs;
   list<RelationOp> relations_ops;
-  RelationExprNode(MxParser::RelationExprContext* ctx);
+  RelationExprNode(MxParser::RelationExprContext *ctx);
 };
 class ShiftExprNode {
  public:
@@ -208,7 +210,7 @@ class ShiftExprNode {
   enum ShiftOp { kLeftShift, kRightShift };
   list<shared_ptr<AddExprNode>> add_exprs;
   list<ShiftOp> shift_ops;
-  ShiftExprNode(MxParser::ShiftExprContext* ctx);
+  ShiftExprNode(MxParser::ShiftExprContext *ctx);
 };
 class AddExprNode {
  public:
@@ -218,7 +220,7 @@ class AddExprNode {
   enum AddOp { kPlus, kMinus };
   list<shared_ptr<MultiExprNode>> multi_exprs;
   list<AddOp> add_ops;
-  AddExprNode(MxParser::AddExprContext* ctx);
+  AddExprNode(MxParser::AddExprContext *ctx);
 };
 class MultiExprNode {
  public:
@@ -228,7 +230,7 @@ class MultiExprNode {
   enum MultiOp { kStar, kDiv, kMod };
   list<shared_ptr<UnaryExprNode>> unary_exprs;
   list<MultiOp> multi_ops;
-  MultiExprNode(MxParser::MultiExprContext* ctx);
+  MultiExprNode(MxParser::MultiExprContext *ctx);
 };
 class UnaryExprNode {
  public:
@@ -238,7 +240,7 @@ class UnaryExprNode {
   enum PrefixUnaryOp { kPlusPlus, kMinusMinus, kNot, kTilde, kMinus };
   any expr;  // postfixExpr | newExpr
   list<PrefixUnaryOp> prefix_unary_ops;
-  UnaryExprNode(MxParser::UnaryExprContext* ctx);
+  UnaryExprNode(MxParser::UnaryExprContext *ctx);
 };
 class PostfixExprNode {
  public:
@@ -247,8 +249,9 @@ class PostfixExprNode {
   void BuildScope(shared_ptr<Scope> _scope);
   enum SuffixUnaryOp { kPlusPlus, kMinusMinus };
   shared_ptr<PrimaryExprNode> primary_expr;
-  list<any> suffix_ops;  // suffixUnaryOp | Member | argList | arrayIndex ,inner op at front
-  PostfixExprNode(MxParser::PostfixExprContext* ctx);
+  list<any> suffix_ops;  // suffixUnaryOp | Member | argList | arrayIndex ,inner
+                         // op at front
+  PostfixExprNode(MxParser::PostfixExprContext *ctx);
 };
 class PrimaryExprNode {
  public:
@@ -256,7 +259,7 @@ class PrimaryExprNode {
   shared_ptr<Scope> scope;
   void BuildScope(shared_ptr<Scope> _scope);
   any expr;  // literal | This	| expression | Identifier | lambdaExpr;
-  PrimaryExprNode(MxParser::PrimaryExprContext* ctx);
+  PrimaryExprNode(MxParser::PrimaryExprContext *ctx);
 };
 class LambdaExprNode {
  public:
@@ -266,7 +269,7 @@ class LambdaExprNode {
   bool ref;
   shared_ptr<ArgListDefNode> args_def;
   shared_ptr<StmtBlockNode> body;
-  LambdaExprNode(MxParser::LambdaExprContext* ctx);
+  LambdaExprNode(MxParser::LambdaExprContext *ctx);
 };
 class NewExprNode {
  public:
@@ -276,20 +279,20 @@ class NewExprNode {
   list<shared_ptr<ArrayIndexNode>> array_idxs;
   void BuildScope(shared_ptr<Scope> _scope);
   ObjectType type;
-  NewExprNode(MxParser::NewExprContext* ctx);
+  NewExprNode(MxParser::NewExprContext *ctx);
 };
 class ArrayIndexNode {
  public:
   shared_ptr<Scope> scope;
   void BuildScope(shared_ptr<Scope> _scope);
   shared_ptr<ExpressionNode> idx_expr;
-  ArrayIndexNode(MxParser::ArrayIndexContext* ctx);
+  ArrayIndexNode(MxParser::ArrayIndexContext *ctx);
 };
 class LiteralNode {
  public:
   ObjectType type;
   any value;
-  LiteralNode(MxParser::LiteralContext* ctx);
+  LiteralNode(MxParser::LiteralContext *ctx);
 };
 class IfStmtNode {
  public:
@@ -301,7 +304,7 @@ class IfStmtNode {
   bool have_else;
   shared_ptr<StmtBlockNode> else_block;
   bool in_loop;
-  IfStmtNode(MxParser::IfStmtContext* ctxm, bool _in_loop = false);
+  IfStmtNode(MxParser::IfStmtContext *ctxm, bool _in_loop = false);
 };
 class WhileStmtNode {
  public:
@@ -310,7 +313,7 @@ class WhileStmtNode {
   void BuildScope(shared_ptr<Scope> _scope);
   shared_ptr<ExpressionNode> condition_expr;
   shared_ptr<StmtBlockNode> block;
-  WhileStmtNode(MxParser::WhileStmtContext* ctx);
+  WhileStmtNode(MxParser::WhileStmtContext *ctx);
 };
 class ForStmtNode {
  public:
@@ -324,7 +327,7 @@ class ForStmtNode {
   bool have_step_expr;
   shared_ptr<ExpressionNode> step_expr;
   shared_ptr<StmtBlockNode> block;
-  ForStmtNode(MxParser::ForStmtContext* ctx);
+  ForStmtNode(MxParser::ForStmtContext *ctx);
 };
 class ReturnStmtNode {
  public:
@@ -333,25 +336,25 @@ class ReturnStmtNode {
   void BuildScope(shared_ptr<Scope> _scope);
   bool have_ret_expr;
   shared_ptr<ExpressionNode> ret_expr;
-  ReturnStmtNode(MxParser::ReturnStmtContext* ctx);
+  ReturnStmtNode(MxParser::ReturnStmtContext *ctx);
 };
 class BreakStmtNode {
  public:
   // shared_ptr<Scope> scope;
   // void BuildScope(shared_ptr<Scope> _scope);
-  BreakStmtNode(MxParser::BreakStmtContext* ctx);
+  BreakStmtNode(MxParser::BreakStmtContext *ctx);
 };
 class ContinueStmtNode {
  public:
   // shared_ptr<Scope> scope;
   // void BuildScope(shared_ptr<Scope> _scope);
-  ContinueStmtNode(MxParser::ContinueStmtContext* ctx);
+  ContinueStmtNode(MxParser::ContinueStmtContext *ctx);
 };
 class ExprStmtNode {
  public:
   shared_ptr<Scope> scope;
   void BuildScope(shared_ptr<Scope> _scope);
   shared_ptr<ExpressionNode> expr;
-  ExprStmtNode(MxParser::ExprStmtContext* ctx);
+  ExprStmtNode(MxParser::ExprStmtContext *ctx);
 };
 }  // namespace AST
