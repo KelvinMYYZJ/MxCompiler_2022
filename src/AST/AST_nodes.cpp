@@ -320,8 +320,29 @@ LiteralNode::LiteralNode(MxParser::LiteralContext* ctx) {
     type = kNullType;
   } else if (auto now_literal = ctx->StringLiteral()) {
     type = kStringType;
-    value = string(now_literal->getText().c_str() + 1);
-    any_cast<string>(value).pop_back();
+    string tmp_str = now_literal->getText().c_str() + 1;
+    tmp_str.pop_back();
+    string final_str;
+    // treat the escape sequence
+    for (int i = 0; i < tmp_str.length(); ++i) {
+      if (tmp_str[i] != '\\') {
+        final_str.push_back(tmp_str[i]);
+        continue;
+      }
+      ++i;
+      switch (tmp_str[i]) {
+        case 'n':
+          final_str.push_back('\n');
+          break;
+        case '\\':
+          final_str.push_back('\\');
+          break;
+        case '\"':
+          final_str.push_back('\"');
+          break;
+      }
+    }
+    value = final_str;
   }
 }
 IfStmtNode::IfStmtNode(MxParser::IfStmtContext* ctx, bool _in_loop) {
