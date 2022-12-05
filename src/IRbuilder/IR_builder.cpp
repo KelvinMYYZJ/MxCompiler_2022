@@ -130,7 +130,7 @@ void IRBuilder::Visit(shared_ptr<AST::FuncDefNode> now) {
     if (func->ret_type == kVoidIRType)
       now_block->PushInstr(ReturnInstr());
     else
-      now_block->PushInstr(ReturnInstr(Value(func->ret_type, 0)));
+      now_block->PushInstr(ReturnInstr(Value(0, func->ret_type)));
   }
   now_func = nullptr;
   now_block = nullptr;
@@ -326,8 +326,8 @@ Value IRBuilder::GetRightValue(Value val) {
   return Value(now_right_val, false);
 }
 Value IRBuilder::Visit(shared_ptr<AST::ExpressionNode> now) {
-  // return Value(make_shared<Register>(kIntIRType));
-  return GetRightValue(Visit(now->assign_expr));
+  return Value(make_shared<Register>(kIntIRType));
+  // return GetRightValue(Visit(now->assign_expr));
 }
 /*
 

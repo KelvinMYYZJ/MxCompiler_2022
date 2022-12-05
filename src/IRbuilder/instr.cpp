@@ -16,7 +16,7 @@ RegisterAssignInstr::RegisterAssignInstr(shared_ptr<IR::Register> _left_reg,
                                          any _right_value)
     : left_reg(_left_reg), right_value(_right_value) {}
 
-ReturnInstr::ReturnInstr() : have_value(false), value(kVoidIRType) {}
+ReturnInstr::ReturnInstr() : have_value(false), value(0) {}
 ReturnInstr::ReturnInstr(Value _value) : value(_value), have_value(true) {}
 
 AllocaExpr::AllocaExpr(IRType _type, Value _size) : type(_type), size(_size) {}
