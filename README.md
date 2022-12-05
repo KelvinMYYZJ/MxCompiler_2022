@@ -5,12 +5,15 @@ By Kelvin_MYYZJ
 
 ### IR design
 #### Object
-| Mx* language | llvm IR object         |
-| :----------- | :--------------------- |
-| int          | i32                    |
-| char         | i8                     |
-| bool         | i8                     |
-| class_object | i32(pointer to object) |
+| Mx* language                      | llvm IR object                   |
+| :-------------------------------- | :------------------------------- |
+| int                               | i32                              |
+| char                              | i8                               |
+| bool                              | i8                               |
+| class_object(including string)  T | T*                               |
+| int array int [] a                | _array_int_1{int size;int *ptr;} |
+| array T[ ]                        | _array_T_1                       |
+| array T[ ][ ][ ]                  | _array_T_3                       |
 
 #### Function: 
 The function `_Global_Init_()` is used to initalize all the global varibles and is called at the begining of `main()`

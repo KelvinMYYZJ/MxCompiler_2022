@@ -13,7 +13,7 @@ struct IRPrinter {
   void Print(IRBuffer *IR_buffer, ostream &os);
   void Label(shared_ptr<Register> reg);
   void Label(shared_ptr<Block> block);
-  void LabelAll(shared_ptr<Block> block);
+  // void LabelAll(shared_ptr<Block> block);
   string ToString(IRType IR_type);
   string ToString(IRBuffer *IR_buffer);
   string ToString(Struct *struct_info);
@@ -29,4 +29,5 @@ struct IRPrinter {
   string ToString(RegisterAssignInstr instr);
   string ToString(ReturnInstr instr);
   string DefaultValue(IRType type);
+  string ToString(AllocaExpr expr);
 };

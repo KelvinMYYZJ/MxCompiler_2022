@@ -43,7 +43,7 @@ struct Struct {
 
 struct IRBuffer {
   shared_ptr<Func> init_func;
-  list<shared_ptr<Struct>> structs;
+  linked_hashmap<string, shared_ptr<Struct>> structs;
   list<GlobalVarDef> global_vars;
   list<shared_ptr<Func>> funcs;
 };

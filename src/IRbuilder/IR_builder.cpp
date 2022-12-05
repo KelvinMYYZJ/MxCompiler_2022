@@ -80,7 +80,7 @@ void IRBuilder::Visit(shared_ptr<AST::ClassDefNode> now) {
   auto class_identifier = now->class_identifier;
   now_class_node = now.get();
   // collect member varible info
-  result->structs.push_back(BuildStructInfo(now));
+  result->structs[class_identifier] = (BuildStructInfo(now));
   // build construct func
   auto init_func = make_shared<Func>();
   result->funcs.push_back(init_func);
@@ -132,6 +132,8 @@ void IRBuilder::Visit(shared_ptr<AST::FuncDefNode> now) {
     else
       now_block->PushInstr(ReturnInstr(Value(func->ret_type, 0)));
   }
+  now_func = nullptr;
+  now_block = nullptr;
 }
 
 void IRBuilder::Visit(shared_ptr<AST::VarDefNode> now, bool is_global) {
@@ -151,7 +153,12 @@ void IRBuilder::Visit(shared_ptr<AST::VarDefNode> now, bool is_global) {
     return;
   }
   for (auto var_def : now->var_defs) {
-    now->scope->GiveVarReg(var_def.var_identifier);
+    auto var_identifier = var_def.var_identifier;
+    now->scope->GiveVarReg(var_identifier); // TODO : now class member var cant
+                                            // be init outsides class init func
+    now_block->PushInstr(
+        RegisterAssignInstr(now->scope->GetVarReg(var_identifier),
+                            AllocaExpr(IRType(now->type, true))));
     PushInitStmt(now, now_func, now_block);
   }
 }
@@ -319,8 +326,8 @@ Value IRBuilder::GetRightValue(Value val) {
   return Value(now_right_val, false);
 }
 Value IRBuilder::Visit(shared_ptr<AST::ExpressionNode> now) {
-  return Value(make_shared<Register>(kIntIRType));
-  // return GetRightValue(Visit(now->assign_expr));
+  // return Value(make_shared<Register>(kIntIRType));
+  return GetRightValue(Visit(now->assign_expr));
 }
 /*
 

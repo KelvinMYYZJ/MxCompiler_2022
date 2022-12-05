@@ -10,9 +10,9 @@ using namespace std;
 namespace IR {
 
 struct StoreInstr {
-  shared_ptr<IR::Register> ptr;
+  Value ptr;
   Value value;
-  StoreInstr(shared_ptr<IR::Register> _ptr, Value _value);
+  StoreInstr(Value _ptr, Value _value);
 };
 struct BrInstr {
   shared_ptr<IR::Block> target_block;
@@ -22,7 +22,8 @@ struct ConditionBrInstr {
   Value condition;
   shared_ptr<IR::Block> true_target_block;
   shared_ptr<IR::Block> false_target_block;
-  ConditionBrInstr(Value _condition_reg, shared_ptr<IR::Block> _true_target_block,
+  ConditionBrInstr(Value _condition_reg,
+                   shared_ptr<IR::Block> _true_target_block,
                    shared_ptr<IR::Block> _false_target_block);
 };
 
@@ -47,8 +48,8 @@ struct LoadExpr {
 
 struct AllocaExpr {
   IRType type;
-  int size;
-  AllocaExpr(IRType _type, int _size = 1);
+  Value size;
+  AllocaExpr(IRType _type, Value _size = 1);
 };
 
 struct FuncCall {};
@@ -78,4 +79,4 @@ struct BinaryExpr {
   BinarayOp op;
   BinaryExpr(Value _lhs, Value _rhs, BinarayOp _op);
 };
-}  // namespace IR
+} // namespace IR

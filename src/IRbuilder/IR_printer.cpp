@@ -31,7 +31,7 @@ string IRPrinter::ToString(IRType IR_type) {
 string IRPrinter::ToString(IRBuffer *IR_buffer) {
   string ret;
   for (auto struct_info : IR_buffer->structs) {
-    ret += ToString(struct_info.get()) + "\n";
+    ret += ToString(struct_info.second.get()) + "\n";
   }
   ret += "\n";
   for (auto var : IR_buffer->global_vars) {
@@ -118,7 +118,7 @@ string IRPrinter::ToString(shared_ptr<Block> block) {
     } else if (AnyIs<ConditionBrInstr>(instr)) {
       ret += ToString(AnyCast<ConditionBrInstr>(instr)) + "\n";
     } else if (AnyIs<RegisterAssignInstr>(instr)) {
-      // ret += ToString(AnyCast<RegisterAssignInstr>(instr)) + "\n";
+      ret += ToString(AnyCast<RegisterAssignInstr>(instr)) + "\n";
     } else if (AnyIs<ReturnInstr>(instr)) {
       ret += ToString(AnyCast<ReturnInstr>(instr)) + "\n";
     }
@@ -130,7 +130,7 @@ string IRPrinter::ToLabel(shared_ptr<Block> block) {
 }
 string IRPrinter::ToString(Value value) {
   if (value.reg)
-    return ToString(value.type) + " %" + to_string(value.reg->label);
+    return ToString(value.type) + " " + ToString(value.reg);
   return ToString(value.type) + " " + to_string(value.value);
 }
 string IRPrinter::ToString(StoreInstr instr) {
@@ -144,10 +144,32 @@ string IRPrinter::ToString(ConditionBrInstr instr) {
          ToLabel(instr.true_target_block) + ", " +
          ToLabel(instr.false_target_block);
 }
-// string IRPrinter::ToString(RegisterAssignInstr instr) { return; }
+string IRPrinter::ToString(RegisterAssignInstr instr) {
+  Label(instr.left_reg);
+  string ret = ToString(instr.left_reg) + " = ";
+  if (AnyIs<AllocaExpr>(instr.right_value)) {
+    ret += ToString(AnyCast<AllocaExpr>(instr.right_value));
+  }
+  return ret;
+}
 string IRPrinter::ToString(ReturnInstr instr) {
   if (instr.have_value) {
     return "ret " + ToString(instr.value);
   }
   return "ret void";
+}
+
+string IRPrinter::ToString(AllocaExpr expr) {
+  string ret = "alloca ";
+  if (expr.size.reg) {
+    ret += "[" + ToString(expr.size) + " x " + expr.type.identifier + "]";
+  } else {
+    if (expr.size.value == 1) {
+      ret += expr.type.identifier;
+    } else {
+      ret +=
+          "[" + to_string(expr.size.value) + " x " + expr.type.identifier + "]";
+    }
+  }
+  return ret;
 }

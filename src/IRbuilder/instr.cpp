@@ -1,8 +1,7 @@
 #include "instr.h"
 namespace IR {
 
-StoreInstr::StoreInstr(shared_ptr<IR::Register> _ptr, Value _value)
-    : ptr(_ptr), value(_value) {}
+StoreInstr::StoreInstr(Value _ptr, Value _value) : ptr(_ptr), value(_value) {}
 
 BrInstr::BrInstr(shared_ptr<IR::Block> _target_block)
     : target_block(_target_block) {}
@@ -20,7 +19,7 @@ RegisterAssignInstr::RegisterAssignInstr(shared_ptr<IR::Register> _left_reg,
 ReturnInstr::ReturnInstr() : have_value(false), value(kVoidIRType) {}
 ReturnInstr::ReturnInstr(Value _value) : value(_value), have_value(true) {}
 
-AllocaExpr::AllocaExpr(IRType _type, int _size) : type(_type), size(_size) {}
+AllocaExpr::AllocaExpr(IRType _type, Value _size) : type(_type), size(_size) {}
 LoadExpr::LoadExpr(shared_ptr<Register> reg)
     : result_type(reg->type.Deref()), ptr(reg) {
 } // Fake here, actually should be Value instead of shared_ptr<Register>.

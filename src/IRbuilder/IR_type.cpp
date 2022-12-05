@@ -1,15 +1,21 @@
 #include "IR_type.h"
 
 #include "type.h"
+#include <string>
 using namespace std;
 IRType::IRType(const ObjectType &obj_type, bool is_ptr)
-    : identifier(obj_type.type_identifier), dim(obj_type.dim) {
+    : identifier(obj_type.type_identifier), dim(0) {
   if (identifier == "void") {
     dim = 0;
     return;
   }
   if (is_ptr)
-    ++dim;
+    dim = 1;
+  if (obj_type.dim) {
+    // is array object
+    identifier = "_array_" + to_string(obj_type.dim) + "_" + identifier;
+    return;
+  }
   if (!obj_type.IsBasicType() || obj_type.type_identifier == "string") {
     ++dim;
   }
