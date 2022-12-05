@@ -1,6 +1,4 @@
 #pragma once
-#include <bits/stdc++.h>
-
 #include <list>
 #include <memory>
 #include <string>
@@ -26,8 +24,7 @@ struct Block {
 
 struct FuncArg {
   shared_ptr<Register> reg;
-  IRType type;
-  FuncArg(IRType _type);
+  FuncArg(IRType type);
 };
 
 struct Func {
@@ -54,7 +51,13 @@ struct Value {
   shared_ptr<Register> reg;
   IRType type;
   int value;
+  // actually is_ptr_to_something.
+  // when is_left is true, the type means the type of value it is pointing to
+  // so actually it's type must be ptr.
+  bool is_left;
   Value(IRType _type, int _value = 0);
-  Value(IRType _type, shared_ptr<Register> _reg);
+  Value(int _value, IRType _type = kIntIRType);
+  Value(shared_ptr<Register> _reg, bool _is_left = false);
+  IRType GetType();
 };
-} // namespace IR
+}  // namespace IR

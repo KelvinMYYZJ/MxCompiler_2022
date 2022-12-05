@@ -1,7 +1,5 @@
 #include "type.h"
 
-#include <bits/stdc++.h>
-
 #include "my_exception.h"
 using namespace std;
 

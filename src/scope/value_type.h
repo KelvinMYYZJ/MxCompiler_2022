@@ -1,6 +1,4 @@
 #pragma once
-#include <bits/stdc++.h>
-
 #include "type.h"
 #include "var_info.h"
 using namespace std;

@@ -1,5 +1,6 @@
 #pragma once
-#include <bits/stdc++.h>
+#include <list>
+#include <string>
 
 #include "MxParser.h"
 using namespace std;

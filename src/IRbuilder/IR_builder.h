@@ -1,6 +1,4 @@
 #pragma once
-#include <bits/stdc++.h>
-
 #include <list>
 #include <memory>
 #include <stack>
@@ -25,8 +23,7 @@ struct IRBuilder {
   shared_ptr<Block> MakeBlock(bool push_now = true);
   shared_ptr<Struct> BuildStructInfo(shared_ptr<AST::ClassDefNode> now);
   shared_ptr<IRBuffer> BuildIR(shared_ptr<AST::ProgNode> now);
-  void PushInitStmt(shared_ptr<AST::VarDefNode> now, shared_ptr<Func> func,
-                    shared_ptr<Block> &now_init_block);
+  void PushInitStmt(shared_ptr<AST::VarDefNode> now, shared_ptr<Func> func, shared_ptr<Block> &now_init_block);
   void Visit(shared_ptr<AST::ProgNode> now);
   void Visit(shared_ptr<AST::ClassDefNode> now);
   void Visit(shared_ptr<AST::VarDefNode> now, bool is_global = false);
@@ -37,7 +34,23 @@ struct IRBuilder {
   void Visit(shared_ptr<AST::WhileStmtNode> now);
   void Visit(shared_ptr<AST::ForStmtNode> now);
   void Visit(shared_ptr<AST::ReturnStmtNode> now);
+  Value GetRightValue(Value val);
   Value Visit(shared_ptr<AST::ExpressionNode> now);
+  Value Visit(shared_ptr<AST::AssignExprNode> now);
+  Value Visit(shared_ptr<AST::LorExprNode> now);
+  Value Visit(shared_ptr<AST::LandExprNode> now);
+  Value Visit(shared_ptr<AST::OrExprNode> now);
+  Value Visit(shared_ptr<AST::XorExprNode> now);
+  Value Visit(shared_ptr<AST::AndExprNode> now);
+  Value Visit(shared_ptr<AST::EqualityExprNode> now);
+  Value Visit(shared_ptr<AST::RelationExprNode> now);
+  Value Visit(shared_ptr<AST::ShiftExprNode> now);
+  Value Visit(shared_ptr<AST::AddExprNode> now);
+  Value Visit(shared_ptr<AST::MultiExprNode> now);
+  Value Visit(shared_ptr<AST::UnaryExprNode> now);
+  Value Visit(shared_ptr<AST::PostfixExprNode> now);
+  Value Visit(shared_ptr<AST::PrimaryExprNode> now);
+  Value Visit(shared_ptr<AST::NewExprNode> now);
   // shared_ptr<Func> BuildMemberFunc(shared_ptr<AST::FuncDefNode>now,
   //                                  const string &class_identifier);
 };

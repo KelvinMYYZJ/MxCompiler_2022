@@ -1,5 +1,4 @@
 #pragma once
-#include <bits/stdc++.h>
 #include <memory>
 
 #include "AST_nodes.h"

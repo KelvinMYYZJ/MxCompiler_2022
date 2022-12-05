@@ -1,5 +1,6 @@
 #pragma once
-#include <bits/stdc++.h>
+#include <exception>
+#include <string>
 class MyException : std::exception {
  private:
   const std::string _ctx;
@@ -12,4 +13,4 @@ class MyException : std::exception {
   const char* What() const;
 };
 
-void MyAssert(bool condition,const MyException& exception);
+void MyAssert(bool condition, const MyException& exception);

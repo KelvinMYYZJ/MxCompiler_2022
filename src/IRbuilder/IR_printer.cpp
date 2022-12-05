@@ -1,6 +1,5 @@
 #include "IR_printer.h"
 
-#include <bits/stdc++.h>
 #include <cstdio>
 #include <memory>
 #include <string>
@@ -15,14 +14,18 @@ void IRPrinter::Print(IRBuffer *IR_buffer, ostream &os) {
   os << ToString(IR_buffer);
 }
 string IRPrinter::ToString(IRType IR_type) {
-  switch (IR_type.kind) {
-  case IRType::kInt:
-    return "i32";
-  case IRType::kChar:
-    return "i8";
-  case IRType::kPtr:
-    return "ptr";
-  }
+  string ret;
+  if (IR_type.identifier == "int") {
+    ret = "i32";
+  } else if (IR_type.identifier == "bool") {
+    ret = "i1";
+  } else if (IR_type.identifier == "void") {
+    ret = "void";
+  } else
+    ret = "%struct." + IR_type.identifier;
+  if (!IR_type.dim)
+    return ret;
+  return ret + string(IR_type.dim, '*');
   throw MyException("Unexcepted error in IR_type printing");
 }
 string IRPrinter::ToString(IRBuffer *IR_buffer) {
@@ -57,13 +60,10 @@ string IRPrinter::ToString(GlobalVarDef var) {
          DefaultValue(var.type);
 }
 string IRPrinter::DefaultValue(IRType type) {
-  switch (type.kind) {
-  case IRType::kInt:
-  case IRType::kChar:
-    return "0";
-  case IRType::kPtr:
+  if (type.dim)
     return "null";
-  }
+  if (type.identifier == "int" || type.identifier == "bool")
+    return "0";
   throw MyException("Unexcepted error in IR_type printing");
 }
 
@@ -80,7 +80,7 @@ string IRPrinter::ToString(shared_ptr<Func> func) {
   now_block_idx = 0;
   ret += "define " + ToString(func->ret_type) + " @" + func->identifier + "(";
   for (auto func_arg : func->args) {
-    ret += ToString(func_arg.type);
+    ret += ToString(func_arg.reg->type);
     Label(func_arg.reg);
     ret += " " + ToString(func_arg.reg) + ", ";
   }

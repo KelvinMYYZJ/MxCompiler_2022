@@ -1,5 +1,4 @@
 #pragma once
-#include <bits/stdc++.h>
 
 #include "my_exception.h"
 #include "register.h"

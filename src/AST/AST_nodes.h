@@ -1,5 +1,4 @@
 #pragma once
-#include <bits/stdc++.h>
 
 #include "MxParser.h"
 #include "class_scope.h"

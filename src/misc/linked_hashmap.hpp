@@ -1,22 +1,19 @@
 #pragma once
 #include "my_exception.h"
-#include <bits/stdc++.h>
 using std::pair;
-template <class T> class LinkedList {
-private:
+template <class T>
+class LinkedList {
+ private:
   struct LinkedListNode {
     T *const val_;
     LinkedListNode *next;
     LinkedListNode *last;
-    LinkedListNode(T *_val, LinkedListNode *_next, LinkedListNode *_last)
-        : val_(_val), next(_next), last(_last) {}
-    LinkedListNode(const T &obj)
-        : LinkedListNode(new T(obj), nullptr, nullptr) {}
+    LinkedListNode(T *_val, LinkedListNode *_next, LinkedListNode *_last) : val_(_val), next(_next), last(_last) {}
+    LinkedListNode(const T &obj) : LinkedListNode(new T(obj), nullptr, nullptr) {}
     LinkedListNode() : LinkedListNode(nullptr, nullptr, nullptr) {}
     LinkedListNode(const LinkedListNode &other) : LinkedListNode(other.val) {}
     ~LinkedListNode() {
-      if (val_)
-        delete val_;
+      if (val_) delete val_;
     }
   };
   LinkedListNode *const head_, *const tail_;
@@ -29,7 +26,7 @@ private:
     ++size_;
   }
 
-public:
+ public:
   /**
    * see BidirectionalIterator at CppReference for help.
    *
@@ -42,7 +39,7 @@ public:
     friend class const_iterator;
     friend class LinkedList<T>;
 
-  private:
+   private:
     /**
      * TODO add data members
      *   just add whatever you want.
@@ -50,7 +47,7 @@ public:
     LinkedList *parent_;
     LinkedListNode *pos_;
 
-  public:
+   public:
     // The following code is written for the C++ type_traits library.
     // Type traits is a C++ feature for describing certain properties of a
     // type. For instance, for an iterator, iterator::value_type is the type
@@ -66,12 +63,10 @@ public:
     using reference = value_type &;
     using iterator_category = std::output_iterator_tag;
 
-    inline iterator(LinkedList *parent, LinkedListNode *pos)
-        : parent_(parent), pos_(pos) {}
+    inline iterator(LinkedList *parent, LinkedListNode *pos) : parent_(parent), pos_(pos) {}
     inline iterator() : iterator(nullptr, nullptr) {}
 
-    inline iterator(const iterator &other)
-        : parent_(other.parent_), pos_(other.pos_) {}
+    inline iterator(const iterator &other) : parent_(other.parent_), pos_(other.pos_) {}
 
     iterator &operator=(const iterator &other) {
       parent_ = other.parent_;
@@ -90,7 +85,7 @@ public:
      * TODO ++iter
      */
     iterator &operator++() {
-      if (!pos_ || !pos_->next) // is tail(end)
+      if (!pos_ || !pos_->next)  // is tail(end)
         throw MyException("invalid_iterator in linked hashmap");
       pos_ = pos_->next;
       return *this;
@@ -107,7 +102,7 @@ public:
      * TODO --iter
      */
     iterator &operator--() {
-      if (!pos_ || !pos_->last->last) // is head(begin)
+      if (!pos_ || !pos_->last->last)  // is head(begin)
         throw MyException("invalid_iterator in linked hashmap");
       pos_ = pos_->last;
       return *this;
@@ -117,23 +112,16 @@ public:
      * same memory).
      */
     value_type &operator*() const {
-      if (!pos_ || !pos_->val_)
-        throw MyException("invalid_iterator in linked hashmap");
+      if (!pos_ || !pos_->val_) throw MyException("invalid_iterator in linked hashmap");
       return *pos_->val_;
     }
     bool operator==(const iterator &rhs) const { return pos_ == rhs.pos_; }
-    bool operator==(const const_iterator &rhs) const {
-      return pos_ == rhs.pos_;
-    }
+    bool operator==(const const_iterator &rhs) const { return pos_ == rhs.pos_; }
     /**
      * some other operator for iterator.
      */
-    inline bool operator!=(const iterator &rhs) const {
-      return pos_ != rhs.pos_;
-    }
-    inline bool operator!=(const const_iterator &rhs) const {
-      return pos_ != rhs.pos_;
-    }
+    inline bool operator!=(const iterator &rhs) const { return pos_ != rhs.pos_; }
+    inline bool operator!=(const const_iterator &rhs) const { return pos_ != rhs.pos_; }
 
     /**
      * for the support of it->first.
@@ -157,19 +145,16 @@ public:
     friend class LinkedList<T>;
     // it should has similar member method as iterator.
     //  and it should be able to construct from an iterator.
-  private:
+   private:
     // data members.
     const LinkedList *parent_;
     const LinkedListNode *pos_;
 
-  public:
-    inline const_iterator(const LinkedList *parent, const LinkedListNode *pos)
-        : parent_(parent), pos_(pos) {}
+   public:
+    inline const_iterator(const LinkedList *parent, const LinkedListNode *pos) : parent_(parent), pos_(pos) {}
     inline const_iterator() : const_iterator(nullptr, nullptr) {}
-    inline const_iterator(const const_iterator &other)
-        : parent_(other.parent_), pos_(other.pos_) {}
-    inline const_iterator(const iterator &other)
-        : parent_(other.parent_), pos_(other.pos_) {}
+    inline const_iterator(const const_iterator &other) : parent_(other.parent_), pos_(other.pos_) {}
+    inline const_iterator(const iterator &other) : parent_(other.parent_), pos_(other.pos_) {}
     // And other methods in iterator.
 
     const_iterator &operator=(const iterator &other) {
@@ -189,7 +174,7 @@ public:
      * TODO ++iter
      */
     const_iterator &operator++() {
-      if (!pos_ || !pos_->next) // is tail(end())
+      if (!pos_ || !pos_->next)  // is tail(end())
         throw MyException("invalid_iterator in linked hashmap");
       pos_ = pos_->next;
       return *this;
@@ -206,26 +191,19 @@ public:
      * TODO --iter
      */
     const_iterator &operator--() {
-      if (!pos_ || !pos_->last->last) // is head->next(begin())
+      if (!pos_ || !pos_->last->last)  // is head->next(begin())
         throw MyException("invalid_iterator in linked hashmap");
       pos_ = pos_->last;
       return *this;
     }
     const value_type &operator*() const {
-      if (!pos_ || !pos_->val_)
-        throw MyException("invalid_iterator in linked hashmap");
+      if (!pos_ || !pos_->val_) throw MyException("invalid_iterator in linked hashmap");
       return *pos_->val_;
     }
     bool operator==(const iterator &rhs) const { return pos_ == rhs.pos_; }
-    bool operator==(const const_iterator &rhs) const {
-      return pos_ == rhs.pos_;
-    }
-    inline bool operator!=(const iterator &rhs) const {
-      return pos_ != rhs.pos_;
-    }
-    inline bool operator!=(const const_iterator &rhs) const {
-      return pos_ != rhs.pos_;
-    }
+    bool operator==(const const_iterator &rhs) const { return pos_ == rhs.pos_; }
+    inline bool operator!=(const iterator &rhs) const { return pos_ != rhs.pos_; }
+    inline bool operator!=(const const_iterator &rhs) const { return pos_ != rhs.pos_; }
     const inline value_type *operator->() const noexcept {
       // if (!pos_ || !pos_->val_) throw MyException("invalid_iterator in linked
       // hashmap");
@@ -233,7 +211,7 @@ public:
     }
   };
 
-private:
+ private:
   void Erase_(LinkedListNode *node) {
     node->last->next = node->next;
     node->next->last = node->last;
@@ -242,13 +220,11 @@ private:
   }
   void Copy_(const LinkedList &other) {
     Clear();
-    for (const_iterator it = other.cbegin(), ed = other.cend(); it != ed; ++it)
-      PushBack(*it);
+    for (const_iterator it = other.cbegin(), ed = other.cend(); it != ed; ++it) PushBack(*it);
   }
 
-public:
-  LinkedList()
-      : head_(new LinkedListNode()), tail_(new LinkedListNode()), size_(0) {
+ public:
+  LinkedList() : head_(new LinkedListNode()), tail_(new LinkedListNode()), size_(0) {
     head_->next = tail_;
     tail_->last = head_;
   }
@@ -257,8 +233,7 @@ public:
     return;
   }
   LinkedList &operator=(const LinkedList &other) {
-    if (this == &other)
-      return *this;
+    if (this == &other) return *this;
     Copy_(other);
     return *this;
   }
@@ -285,9 +260,7 @@ public:
   }
   inline iterator begin() { return iterator(this, head_->next); }
   inline iterator end() { return iterator(this, tail_); }
-  inline const_iterator cbegin() const {
-    return const_iterator(this, head_->next);
-  }
+  inline const_iterator cbegin() const { return const_iterator(this, head_->next); }
   inline const_iterator cend() const { return const_iterator(this, tail_); }
   bool CheckIn(const iterator &obj) const { return obj.parent_ == this; }
   bool CheckIn(const const_iterator &obj) const { return obj.parent_ == this; }
@@ -296,12 +269,11 @@ public:
     delete head_;
     delete tail_;
   }
-}; // namespace sjtu
+};  // namespace sjtu
 
-template <class Key, class T, class Hash = std::hash<Key>,
-          class Equal = std::equal_to<Key>>
+template <class Key, class T, class Hash = std::hash<Key>, class Equal = std::equal_to<Key>>
 class linked_hashmap {
-public:
+ public:
   /**
    * the internal type of data.
    * it should have a default constructor, a copy constructor.
@@ -311,7 +283,7 @@ public:
   using iterator = typename LinkedList<value_type>::iterator;
   using const_iterator = typename LinkedList<value_type>::const_iterator;
 
-private:
+ private:
   size_t log_capacity_;
   size_t capacity_;
   constexpr static const double load_factor_ = 0.75;
@@ -337,27 +309,21 @@ private:
     return;
   }
   void ReHash_() {
-    for (iterator it = main_list_.begin(), ed = main_list_.end(); it != ed;
-         ++it)
-      InsertIterator(it);
+    for (iterator it = main_list_.begin(), ed = main_list_.end(); it != ed; ++it) InsertIterator(it);
     return;
   }
 
   void DeleteHashTable_() {
     if (hash_table_) {
       for (int i = 0; i < 1 << log_capacity_; ++i)
-        if (hash_table_[i])
-          delete hash_table_[i];
+        if (hash_table_[i]) delete hash_table_[i];
       delete[] hash_table_;
     }
   }
 
-  void SetHashTableEmpty_() {
-    memset(hash_table_, 0,
-           sizeof(LinkedList<iterator> *) * (1 << log_capacity_));
-  }
+  void SetHashTableEmpty_() { memset(hash_table_, 0, sizeof(LinkedList<iterator> *) * (1 << log_capacity_)); }
 
-  void SetLogCapacity_(size_t log_capacity) { // Create an empty hash_table_
+  void SetLogCapacity_(size_t log_capacity) {  // Create an empty hash_table_
     DeleteHashTable_();
     log_capacity_ = log_capacity;
     capacity_ = (1 << log_capacity_) - 1;
@@ -365,33 +331,31 @@ private:
     SetHashTableEmpty_();
     return;
   }
-  inline hash_iterator Find_(LinkedList<iterator> &tar_list,
-                             const Key &key) const {
+  inline hash_iterator Find_(LinkedList<iterator> &tar_list, const Key &key) const {
     for (auto it = tar_list.begin(), ed = tar_list.end(); it != ed; ++it)
-      if (equal_((*it)->first, key))
-        return it;
+      if (equal_((*it)->first, key)) return it;
     return tar_list.end();
   }
-  inline hash_const_iterator Find_(const LinkedList<iterator> &tar_list,
-                                   const Key &key) const {
-    for (hash_const_iterator it = tar_list.cbegin(), ed = tar_list.cend();
-         it != ed; ++it)
-      if (it->first == key)
-        return it;
+  inline hash_const_iterator Find_(const LinkedList<iterator> &tar_list, const Key &key) const {
+    for (hash_const_iterator it = tar_list.cbegin(), ed = tar_list.cend(); it != ed; ++it)
+      if (it->first == key) return it;
     return tar_list.cend();
   }
 
-public:
+ public:
   /**
    * TODO two constructors
    */
   linked_hashmap()
-      : log_capacity_(15), capacity_((1 << log_capacity_) - 1), main_list_(),
+      : log_capacity_(15),
+        capacity_((1 << log_capacity_) - 1),
+        main_list_(),
         hash_table_(new LinkedList<iterator> *[1 << log_capacity_]) {
     SetHashTableEmpty_();
   }
   linked_hashmap(const linked_hashmap &other)
-      : log_capacity_(other.log_capacity_), capacity_(other.capacity_),
+      : log_capacity_(other.log_capacity_),
+        capacity_(other.capacity_),
         main_list_(other.main_list_),
         hash_table_(new LinkedList<iterator> *[1 << log_capacity_]) {
     SetHashTableEmpty_();
@@ -402,8 +366,7 @@ public:
    * TODO assignment operator
    */
   linked_hashmap &operator=(const linked_hashmap &other) {
-    if (this == &other)
-      return *this;
+    if (this == &other) return *this;
     SetLogCapacity_(other.log_capacity_);
     main_list_ = other.main_list_;
     ReHash_();
@@ -427,20 +390,16 @@ public:
    */
   T &at(const Key &key) {
     size_t index = GetIndex_(key);
-    if (!hash_table_[index])
-      throw MyException("index_out_of_bound in linked hashmap");
+    if (!hash_table_[index]) throw MyException("index_out_of_bound in linked hashmap");
     auto it = Find_(*hash_table_[index], key);
-    if (it == hash_table_[index]->end())
-      throw MyException("index_out_of_bound in linked hashmap");
+    if (it == hash_table_[index]->end()) throw MyException("index_out_of_bound in linked hashmap");
     return (*it)->second;
   }
   const T &at(const Key &key) const {
     size_t index = GetIndex_(key);
-    if (!hash_table_[index])
-      throw MyException("index_out_of_bound in linked hashmap");
+    if (!hash_table_[index]) throw MyException("index_out_of_bound in linked hashmap");
     hash_const_iterator it = Find_(*hash_table_[index], key);
-    if (it == hash_table_[index]->cend())
-      throw MyException("index_out_of_bound in linked hashmap");
+    if (it == hash_table_[index]->cend()) throw MyException("index_out_of_bound in linked hashmap");
     return (*it)->second;
   }
 
@@ -454,8 +413,7 @@ public:
     size_t index = GetIndex_(key);
     if (hash_table_[index]) {
       auto it = Find_(*hash_table_[index], key);
-      if (it != hash_table_[index]->end())
-        return (*it)->second;
+      if (it != hash_table_[index]->end()) return (*it)->second;
     }
     value_type value(key, T());
     main_list_.PushBack(value);
@@ -519,8 +477,7 @@ public:
     size_t index = GetIndex_(key);
     if (hash_table_[index]) {
       auto it = Find_(*hash_table_[index], key);
-      if (it != hash_table_[index]->end())
-        return pair<iterator, bool>(*it, false);
+      if (it != hash_table_[index]->end()) return pair<iterator, bool>(*it, false);
     }
     main_list_.PushBack(value);
     if (main_list_.Size() > ((1 << log_capacity_) * load_factor_)) {
@@ -540,15 +497,12 @@ public:
    * an element out of this)
    */
   void erase(const iterator &pos) {
-    if (!main_list_.CheckIn(pos) || pos == main_list_.end())
-      throw MyException("index_out_of_bound in linked hashmap");
+    if (!main_list_.CheckIn(pos) || pos == main_list_.end()) throw MyException("index_out_of_bound in linked hashmap");
     const Key &key = pos->first;
     size_t index = GetIndex_(key);
-    if (!hash_table_[index])
-      throw("???");
+    if (!hash_table_[index]) throw("???");
     auto it = Find_(*hash_table_[index], key);
-    if (it == hash_table_[index]->end())
-      throw("???");
+    if (it == hash_table_[index]->end()) throw("???");
     hash_table_[index]->Erase(it);
     main_list_.Erase(pos);
     return;
@@ -562,11 +516,9 @@ public:
    */
   inline size_t count(const Key &key) const {
     size_t index = GetIndex_(key);
-    if (!hash_table_[index])
-      return 0;
+    if (!hash_table_[index]) return 0;
     auto it = Find_(*hash_table_[index], key);
-    if (it == hash_table_[index]->cend())
-      return 0;
+    if (it == hash_table_[index]->cend()) return 0;
     return 1;
   }
 
@@ -579,20 +531,16 @@ public:
    */
   inline iterator find(const Key &key) {
     size_t index = GetIndex_(key);
-    if (!hash_table_[index])
-      return end();
+    if (!hash_table_[index]) return end();
     auto it = Find_(*hash_table_[index], key);
-    if (it == hash_table_[index]->end())
-      return end();
+    if (it == hash_table_[index]->end()) return end();
     return *it;
   }
   inline const_iterator find(const Key &key) const {
     size_t index = GetIndex_(key);
-    if (!hash_table_[index])
-      return cend();
+    if (!hash_table_[index]) return cend();
     auto it = Find_(*hash_table_[index], key);
-    if (it == hash_table_[index]->cend())
-      return cend();
+    if (it == hash_table_[index]->cend()) return cend();
     return *it;
   }
 };

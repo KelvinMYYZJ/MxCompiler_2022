@@ -1,7 +1,5 @@
 #include "my_error_listener.h"
 
-#include <bits/stdc++.h>
-
 #include "antlr4-runtime.h"
 #include "my_exception.h"
 using namespace antlr4;

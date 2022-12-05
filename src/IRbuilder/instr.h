@@ -1,5 +1,4 @@
 #pragma once
-#include <bits/stdc++.h>
 
 #include <any>
 #include <memory>
@@ -23,8 +22,7 @@ struct ConditionBrInstr {
   Value condition;
   shared_ptr<IR::Block> true_target_block;
   shared_ptr<IR::Block> false_target_block;
-  ConditionBrInstr(Value _condition_reg,
-                   shared_ptr<IR::Block> _true_target_block,
+  ConditionBrInstr(Value _condition_reg, shared_ptr<IR::Block> _true_target_block,
                    shared_ptr<IR::Block> _false_target_block);
 };
 
@@ -43,16 +41,41 @@ struct ReturnInstr {
 
 struct LoadExpr {
   IRType result_type;
-  Register ptr;
-  LoadExpr(IRType _result_type, Register _ptr);
+  shared_ptr<Register> ptr;
+  LoadExpr(shared_ptr<Register> reg);
 };
+
+struct AllocaExpr {
+  IRType type;
+  int size;
+  AllocaExpr(IRType _type, int _size = 1);
+};
+
 struct FuncCall {};
 
 struct BinaryExpr {
-  shared_ptr<Register> lhs, rhs;
-  enum BinarayOp {};
+  Value lhs, rhs;
+  enum BinarayOp {
+    kLor,
+    kLand,
+    kOr,
+    kXor,
+    kAnd,
+    kEqual,
+    kNotequal,
+    kLess,
+    kLessEqual,
+    kGreater,
+    kGreaterEqual,
+    kLeftShift,
+    kRightShift,
+    kPlus,
+    kMinus,
+    kStar,
+    kDiv,
+    kMod
+  };
   BinarayOp op;
-  BinaryExpr(shared_ptr<Register> _lhs, shared_ptr<Register> _rhs,
-             BinarayOp _op);
+  BinaryExpr(Value _lhs, Value _rhs, BinarayOp _op);
 };
-} // namespace IR
+}  // namespace IR

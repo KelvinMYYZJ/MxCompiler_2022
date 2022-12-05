@@ -17,14 +17,15 @@ RegisterAssignInstr::RegisterAssignInstr(shared_ptr<IR::Register> _left_reg,
                                          any _right_value)
     : left_reg(_left_reg), right_value(_right_value) {}
 
-ReturnInstr::ReturnInstr() : have_value(false), value(kI32Type) {}
+ReturnInstr::ReturnInstr() : have_value(false), value(kVoidIRType) {}
 ReturnInstr::ReturnInstr(Value _value) : value(_value), have_value(true) {}
 
-LoadExpr::LoadExpr(IRType _result_type, Register _ptr)
-    : result_type(_result_type), ptr(_ptr) {}
+AllocaExpr::AllocaExpr(IRType _type, int _size) : type(_type), size(_size) {}
+LoadExpr::LoadExpr(shared_ptr<Register> reg)
+    : result_type(reg->type.Deref()), ptr(reg) {
+} // Fake here, actually should be Value instead of shared_ptr<Register>.
 
-BinaryExpr::BinaryExpr(shared_ptr<Register> _lhs, shared_ptr<Register> _rhs,
-                       BinarayOp _op)
+BinaryExpr::BinaryExpr(Value _lhs, Value _rhs, BinarayOp _op)
     : lhs(_lhs), rhs(_rhs), op(_op) {}
 
 } // namespace IR

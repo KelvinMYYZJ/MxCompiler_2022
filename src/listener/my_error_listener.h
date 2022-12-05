@@ -1,9 +1,7 @@
-#include <bits/stdc++.h>
-
-#include "my_exception.h"
 #include "antlr4-runtime.h"
+#include "my_exception.h"
 using namespace antlr4;
-using namespace  std;
+using namespace std;
 
 class MxErrorListener : public BaseErrorListener {
   void syntaxError(Recognizer *recognizer, Token *offendingSymbol, size_t line, size_t charPositionInLine,
