@@ -143,7 +143,8 @@ void IRBuilder::Visit(shared_ptr<AST::VarDefNode> now, bool is_global) {
       // collect varible info
       result->global_vars.push_back({var_identifier, ir_type});
       // give reg to AST
-      now->scope->GiveVarReg(var_identifier);
+      now->scope->GiveVarReg(var_identifier, make_shared<GlobalRegister>(
+                                                 var_identifier, type, false));
     }
     // push into init func
     PushInitStmt(now, global_init_func, now_global_init_block);
