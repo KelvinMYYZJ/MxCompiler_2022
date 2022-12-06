@@ -4,6 +4,7 @@
 #include <memory>
 #include <string>
 
+#include "IR_type.h"
 #include "my_any.hpp"
 #include "my_exception.h"
 #include "register.h"
@@ -125,7 +126,10 @@ string IRPrinter::ToString(shared_ptr<Block> block) {
   }
   return ret;
 }
-string IRPrinter::ToLabel(shared_ptr<Block> block) {
+string IRPrinter::ToLabel(shared_ptr<Block> block, bool show_type) {
+  if (!show_type) {
+    return "%block" + to_string(block->label);
+  }
   return "label %block" + to_string(block->label);
 }
 string IRPrinter::ToString(Value value, bool show_type) {
@@ -150,6 +154,10 @@ string IRPrinter::ToString(ConditionBrInstr instr) {
          ToLabel(instr.false_target_block);
 }
 string IRPrinter::ToString(RegisterAssignInstr instr) {
+  if (AnyIs<FuncCallExpr>(instr.right_value) &&
+      AnyCast<FuncCallExpr>(instr.right_value).ret_type == kVoidIRType) {
+    return ToString(AnyCast<FuncCallExpr>(instr.right_value));
+  }
   Label(instr.left_reg);
   string ret = ToString(instr.left_reg) + " = ";
   if (AnyIs<AllocaExpr>(instr.right_value)) {
@@ -158,6 +166,10 @@ string IRPrinter::ToString(RegisterAssignInstr instr) {
     ret += ToString(AnyCast<LoadExpr>(instr.right_value));
   } else if (AnyIs<BinaryExpr>(instr.right_value)) {
     ret += ToString(AnyCast<BinaryExpr>(instr.right_value));
+  } else if (AnyIs<FuncCallExpr>(instr.right_value)) {
+    ret += ToString(AnyCast<FuncCallExpr>(instr.right_value));
+  } else if (AnyIs<PhiExpr>(instr.right_value)) {
+    ret += ToString(AnyCast<PhiExpr>(instr.right_value));
   }
   return ret;
 }
@@ -249,5 +261,28 @@ string IRPrinter::ToString(AllocaExpr expr) {
 string IRPrinter::ToString(LoadExpr expr) {
   string ret =
       "load " + ToString(expr.result_type) + ", " + ToString(Value(expr.ptr));
+  return ret;
+}
+string IRPrinter::ToString(FuncCallExpr expr) {
+  string ret =
+      "call " + ToString(expr.ret_type) + " @" + (expr.identifier) + "(";
+  for (auto arg : expr.arg_list) {
+    ret += ToString(arg) + ", ";
+  }
+  if (expr.arg_list.size()) {
+    ret.pop_back();
+    ret.pop_back();
+  }
+  ret += ")";
+  return ret;
+}
+string IRPrinter::ToString(PhiExpr expr) {
+  string ret = "phi " + ToString(expr.type) + " ";
+  for (auto now_case : expr.case_list) {
+    ret += "[ " + ToString(now_case.val, false) + ", " +
+           ToLabel(now_case.pre_block, false) + " ], ";
+  }
+  ret.pop_back();
+  ret.pop_back();
   return ret;
 }

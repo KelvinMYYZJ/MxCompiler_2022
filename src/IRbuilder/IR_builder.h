@@ -53,6 +53,7 @@ struct IRBuilder {
   Value Visit(shared_ptr<AST::PrimaryExprNode> now);
   Value Visit(shared_ptr<AST::NewExprNode> now);
   Value Visit(shared_ptr<AST::LiteralNode> now);
+  list<Value> Visit(shared_ptr<AST::ArgListNode> now);
   // shared_ptr<Func> BuildMemberFunc(shared_ptr<AST::FuncDefNode>now,
   //                                  const string &class_identifier);
 };

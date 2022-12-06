@@ -21,6 +21,10 @@ ReturnInstr::ReturnInstr() : have_value(false), value(0) {}
 ReturnInstr::ReturnInstr(Value _value) : value(_value), have_value(true) {}
 
 AllocaExpr::AllocaExpr(IRType _type, Value _size) : type(_type), size(_size) {}
+FuncCallExpr::FuncCallExpr(const list<Value> &_arg_list, string _identifier,
+                           IRType _ret_type)
+    : arg_list(_arg_list), identifier(_identifier), ret_type(_ret_type) {}
+
 LoadExpr::LoadExpr(shared_ptr<Register> reg)
     : result_type(reg->type.Deref()), ptr(reg) {
 } // Fake here, actually should be Value instead of shared_ptr<Register>.
@@ -28,4 +32,6 @@ LoadExpr::LoadExpr(shared_ptr<Register> reg)
 BinaryExpr::BinaryExpr(Value _lhs, Value _rhs, BinarayOp _op, IRType _type)
     : lhs(_lhs), rhs(_rhs), op(_op), type(_type) {}
 
+PhiExpr::PhiExpr(IRType _type) : type(_type) {}
+void PhiExpr::PushCase(Case obj) { case_list.push_back(obj); }
 } // namespace IR

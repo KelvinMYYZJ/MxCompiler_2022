@@ -134,6 +134,9 @@ void IRBuilder::Visit(shared_ptr<AST::FuncDefNode> now) {
   }
   now_func = nullptr;
   now_block = nullptr;
+  if (now_class_node) {
+    now_this = nullptr;
+  }
 }
 
 void IRBuilder::Visit(shared_ptr<AST::VarDefNode> now, bool is_global) {
@@ -227,7 +230,6 @@ void IRBuilder::Visit(shared_ptr<AST::IfStmtNode> now) {
     }
     if (!br_to_next)
       return;
-    now_func->blocks.push_back(next_block);
     now_block = next_block;
   } else {
     now_block->PushInstr(ConditionBrInstr(condition, then_block, next_block));
@@ -235,10 +237,9 @@ void IRBuilder::Visit(shared_ptr<AST::IfStmtNode> now) {
     Visit(now->block);
     if (!now_block->closed)
       now_block->PushInstr(BrInstr(next_block));
-    now_block = next_block;
   }
-  break_target.pop();
-  continue_target.pop();
+  now_func->blocks.push_back(next_block);
+  now_block = next_block;
 }
 
 void IRBuilder::Visit(shared_ptr<AST::WhileStmtNode> now) {
@@ -345,24 +346,53 @@ Value IRBuilder::Visit(shared_ptr<AST::LorExprNode> now) {
   if (now->land_exprs.size() == 1) {
     return Visit(now->land_exprs.front());
   }
-  // TODO
-  /* auto ret = GetRightValue(Visit(now->land_exprs.front()));
-  bool first_flag = true;
+  auto final_block = MakeBlock(false);
+  Value ret = make_shared<Register>(kBoolIRType);
+  PhiExpr expr = kBoolIRType;
+  int cnt = 1;
   for (auto now_land_expr : now->land_exprs) {
-    if (first_flag) {
-      first_flag = false;
-      continue;
-    }
     auto now_val = GetRightValue(Visit(now_land_expr));
-    auto new_reg = make_shared<Register>();
-    now_block->PushInstr(RegisterAssignInstr(new_reg, BinaryExpr()))
-  } */
+    if (cnt != now->land_exprs.size()) {
+      auto nxt_block = MakeBlock();
+      now_block->PushInstr(ConditionBrInstr(now_val, final_block, nxt_block));
+      expr.PushCase({now_block, Value(true)});
+      now_block = nxt_block;
+    } else {
+      now_block->PushInstr(BrInstr(final_block));
+      expr.PushCase({now_block, now_val});
+      now_block = final_block;
+    }
+    ++cnt;
+  }
+  now_block->PushInstr(RegisterAssignInstr(ret.reg, expr));
+  now_func->blocks.push_back(final_block);
+  return ret;
 }
 Value IRBuilder::Visit(shared_ptr<AST::LandExprNode> now) {
   if (now->or_exprs.size() == 1) {
     return Visit(now->or_exprs.front());
   }
-  // TODO
+  auto final_block = MakeBlock(false);
+  Value ret = make_shared<Register>(kBoolIRType);
+  PhiExpr expr = kBoolIRType;
+  int cnt = 1;
+  for (auto now_or_expr : now->or_exprs) {
+    auto now_val = GetRightValue(Visit(now_or_expr));
+    if (cnt != now->or_exprs.size()) {
+      auto nxt_block = MakeBlock();
+      now_block->PushInstr(ConditionBrInstr(now_val, nxt_block, final_block));
+      expr.PushCase({now_block, Value(false)});
+      now_block = nxt_block;
+    } else {
+      now_block->PushInstr(BrInstr(final_block));
+      expr.PushCase({now_block, now_val});
+      now_block = final_block;
+    }
+    ++cnt;
+  }
+  now_block->PushInstr(RegisterAssignInstr(ret.reg, expr));
+  now_func->blocks.push_back(final_block);
+  return ret;
 }
 Value IRBuilder::Visit(shared_ptr<AST::OrExprNode> now) {
   if (now->xor_exprs.size() == 1) {
@@ -637,7 +667,7 @@ Value IRBuilder::Visit(shared_ptr<AST::PostfixExprNode> now) {
   Value ret = Visit(now->primary_expr);
   for (auto op_iter = now->suffix_ops.begin(); op_iter != now->suffix_ops.end();
        ++op_iter) {
-    auto op = op_iter;
+    auto op = *op_iter;
     if (AnyIs<AST::PostfixExprNode::SuffixUnaryOp>(op)) {
       switch (AnyCast<AST::PostfixExprNode::SuffixUnaryOp>(op)) {
       case AST::PostfixExprNode::kPlusPlus: {
@@ -662,7 +692,21 @@ Value IRBuilder::Visit(shared_ptr<AST::PostfixExprNode> now) {
         break;
       }
       }
-    } /* else if (AnyIs<>(op)) */ // TODO
+    } else if (auto arg_list_node = AnyCastPtr<AST::ArgListNode>(op)) {
+      auto arg_lists = Visit(arg_list_node);
+      if (ret.func.ret_type == kVoidIRType) {
+        now_block->PushInstr(RegisterAssignInstr(
+            nullptr,
+            FuncCallExpr(arg_lists, ret.func.identifier, ret.func.ret_type)));
+        ret = 0;
+        continue;
+      }
+      auto result = make_shared<Register>(ret.func.ret_type);
+      now_block->PushInstr(RegisterAssignInstr(
+          result,
+          FuncCallExpr(arg_lists, ret.func.identifier, ret.func.ret_type)));
+      ret = result;
+    }
   }
   return ret;
 }
@@ -682,7 +726,11 @@ Value IRBuilder::Visit(shared_ptr<AST::PrimaryExprNode> now) {
     if (now->value_type.have_object_type) {
       ret = Value(now->value_type.var_info->reg, true);
     }
-    // return Value(now->value_type.have_object_type);
+    if (now->value_type.have_func_type) {
+      ret.func.identifier = identifier;
+      ret.func.is_member = false;
+      ret.func.ret_type = IRType(now->value_type.func_type.ret_type, false);
+    }
     return ret;
   }
 }
@@ -706,4 +754,12 @@ Value IRBuilder::Visit(shared_ptr<AST::LiteralNode> now) {
     // TODO
   }
   return 0;
+}
+
+list<Value> IRBuilder::Visit(shared_ptr<AST::ArgListNode> now) {
+  list<Value> ret;
+  for (auto arg_expr : now->args) {
+    ret.push_back(Visit(arg_expr));
+  }
+  return ret;
 }

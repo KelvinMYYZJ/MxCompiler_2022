@@ -21,7 +21,7 @@ struct IRPrinter {
   string ToString(shared_ptr<Func> func);
   string ToString(shared_ptr<Register> reg);
   string ToString(shared_ptr<Block> block);
-  string ToLabel(shared_ptr<Block> block);
+  string ToLabel(shared_ptr<Block> block, bool show_type = true);
   string ToString(Value value, bool show_type = true);
   string ToString(StoreInstr instr);
   string ToString(BrInstr instr);
@@ -32,4 +32,6 @@ struct IRPrinter {
   string ToString(AllocaExpr expr);
   string ToString(LoadExpr expr);
   string ToString(BinaryExpr expr);
+  string ToString(FuncCallExpr expr);
+  string ToString(PhiExpr expr);
 };

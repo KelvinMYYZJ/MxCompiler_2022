@@ -55,8 +55,14 @@ struct Value {
   // when is_left is true, the type means the type of value it is pointing to
   // so actually it's type must be ptr.
   bool is_left;
+  struct IRFuncInfo {
+    string identifier;
+    bool is_member;
+    IRType ret_type;
+  } func;
   Value(IRType _type);
   Value(int _value, IRType _type = kIntIRType);
+  Value(bool _value, IRType _type = kBoolIRType);
   Value(shared_ptr<Register> _reg, bool _is_left = false);
   IRType GetType();
 };

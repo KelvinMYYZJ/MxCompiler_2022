@@ -53,7 +53,24 @@ struct AllocaExpr {
   AllocaExpr(IRType _type, Value _size = 1);
 };
 
-struct FuncCall {};
+struct FuncCallExpr {
+  list<Value> arg_list;
+  string identifier;
+  IRType ret_type;
+  FuncCallExpr(const list<Value> &_arg_list, string _identifier,
+               IRType _ret_type);
+};
+
+struct PhiExpr {
+  struct Case {
+    shared_ptr<IR::Block> pre_block;
+    Value val;
+  };
+  list<Case> case_list;
+  IRType type;
+  PhiExpr(IRType _type);
+  void PushCase(Case obj);
+};
 
 struct BinaryExpr {
   Value lhs, rhs;
