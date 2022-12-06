@@ -9,7 +9,7 @@ struct IRType {
   int dim;
   // is_ptr means the type that point to an obj_type
   IRType(const ObjectType &obj_type = ObjectType(), bool is_ptr = false);
-  IRType(const IRType& other);
+  IRType(const IRType &other);
   IRType Deref() const;
   bool operator==(const IRType &rhs) const;
 };

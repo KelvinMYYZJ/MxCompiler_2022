@@ -677,8 +677,13 @@ Value IRBuilder::Visit(shared_ptr<AST::PrimaryExprNode> now) {
     return now_this;
   }
   if (AnyIs<string>(now->expr)) {
+    Value ret = 0;
     auto identifier = AnyCast<string>(now->expr);
-    return Value(now->scope->GetVarReg(identifier), true);
+    if (now->value_type.have_object_type) {
+      ret = Value(now->value_type.var_info->reg, true);
+    }
+    // return Value(now->value_type.have_object_type);
+    return ret;
   }
 }
 

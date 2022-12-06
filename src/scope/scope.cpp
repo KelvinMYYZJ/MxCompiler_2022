@@ -48,10 +48,6 @@ void Scope::GiveVarReg(const string &var_identifier,
 void Scope::GiveVarReg(const string &var_identifier) {
   shared_ptr<IR::Register> reg = make_shared<IR::Register>(
       GetIdentifierType(var_identifier).object_type, true);
-  if (!reg) {
-    reg = make_shared<IR::Register>(
-        GetIdentifierType(var_identifier).object_type, true);
-  }
   if (!vars->count(var_identifier)) {
     parent->GiveVarReg(var_identifier, reg);
     return;
