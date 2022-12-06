@@ -4,6 +4,7 @@
 #include <memory>
 
 #include "IR.h"
+#include "IR_type.h"
 #include "my_exception.h"
 #include "register.h"
 using namespace std;
@@ -56,9 +57,10 @@ struct FuncCall {};
 
 struct BinaryExpr {
   Value lhs, rhs;
+  IRType type;
   enum BinarayOp {
-    kLor,
-    kLand,
+    // kLor,
+    // kLand,
     kOr,
     kXor,
     kAnd,
@@ -77,6 +79,6 @@ struct BinaryExpr {
     kMod
   };
   BinarayOp op;
-  BinaryExpr(Value _lhs, Value _rhs, BinarayOp _op);
+  BinaryExpr(Value _lhs, Value _rhs, BinarayOp _op, IRType _type);
 };
 } // namespace IR

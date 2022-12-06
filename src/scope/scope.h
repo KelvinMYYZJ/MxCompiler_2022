@@ -22,7 +22,8 @@ public:
                                    const string &member_identifier) const;
   virtual void CheckClass(const string &class_identifier) const;
   virtual void GiveVarReg(const string &var_identifier,
-                          shared_ptr<IR::Register> reg = nullptr);
+                          shared_ptr<IR::Register> reg);
+  virtual void GiveVarReg(const string &var_identifier);
   virtual shared_ptr<IR::Register> GetVarReg(const string &var_identifier);
   Scope(const shared_ptr<Scope> &_parent, bool _in_lambda = false);
 };

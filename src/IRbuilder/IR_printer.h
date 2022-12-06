@@ -22,7 +22,7 @@ struct IRPrinter {
   string ToString(shared_ptr<Register> reg);
   string ToString(shared_ptr<Block> block);
   string ToLabel(shared_ptr<Block> block);
-  string ToString(Value value);
+  string ToString(Value value, bool show_type = true);
   string ToString(StoreInstr instr);
   string ToString(BrInstr instr);
   string ToString(ConditionBrInstr instr);
@@ -30,4 +30,6 @@ struct IRPrinter {
   string ToString(ReturnInstr instr);
   string DefaultValue(IRType type);
   string ToString(AllocaExpr expr);
+  string ToString(LoadExpr expr);
+  string ToString(BinaryExpr expr);
 };

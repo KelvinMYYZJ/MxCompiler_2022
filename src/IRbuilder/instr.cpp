@@ -1,4 +1,5 @@
 #include "instr.h"
+#include "IR_type.h"
 namespace IR {
 
 StoreInstr::StoreInstr(Value _ptr, Value _value) : ptr(_ptr), value(_value) {}
@@ -24,7 +25,7 @@ LoadExpr::LoadExpr(shared_ptr<Register> reg)
     : result_type(reg->type.Deref()), ptr(reg) {
 } // Fake here, actually should be Value instead of shared_ptr<Register>.
 
-BinaryExpr::BinaryExpr(Value _lhs, Value _rhs, BinarayOp _op)
-    : lhs(_lhs), rhs(_rhs), op(_op) {}
+BinaryExpr::BinaryExpr(Value _lhs, Value _rhs, BinarayOp _op, IRType _type)
+    : lhs(_lhs), rhs(_rhs), op(_op), type(_type) {}
 
 } // namespace IR

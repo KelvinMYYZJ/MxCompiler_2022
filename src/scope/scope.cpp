@@ -45,6 +45,21 @@ void Scope::GiveVarReg(const string &var_identifier,
     cerr << "!!! regive reg !!!";
   (*vars)[var_identifier].reg = reg;
 }
+void Scope::GiveVarReg(const string &var_identifier) {
+  shared_ptr<IR::Register> reg = make_shared<IR::Register>(
+      GetIdentifierType(var_identifier).object_type, true);
+  if (!reg) {
+    reg = make_shared<IR::Register>(
+        GetIdentifierType(var_identifier).object_type, true);
+  }
+  if (!vars->count(var_identifier)) {
+    parent->GiveVarReg(var_identifier, reg);
+    return;
+  }
+  if ((*vars)[var_identifier].reg)
+    cerr << "!!! regive reg !!!";
+  (*vars)[var_identifier].reg = reg;
+}
 shared_ptr<IR::Register> Scope::GetVarReg(const string &var_identifier) {
   if (vars->count(var_identifier)) {
     auto var_info = &(*vars)[var_identifier];

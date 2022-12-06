@@ -23,7 +23,8 @@ struct IRBuilder {
   shared_ptr<Block> MakeBlock(bool push_now = true);
   shared_ptr<Struct> BuildStructInfo(shared_ptr<AST::ClassDefNode> now);
   shared_ptr<IRBuffer> BuildIR(shared_ptr<AST::ProgNode> now);
-  void PushInitStmt(shared_ptr<AST::VarDefNode> now, shared_ptr<Func> func, shared_ptr<Block> &now_init_block);
+  void PushInitStmt(shared_ptr<AST::VarDefNode> now, shared_ptr<Func> func,
+                    shared_ptr<Block> &now_init_block);
   void Visit(shared_ptr<AST::ProgNode> now);
   void Visit(shared_ptr<AST::ClassDefNode> now);
   void Visit(shared_ptr<AST::VarDefNode> now, bool is_global = false);
@@ -51,6 +52,7 @@ struct IRBuilder {
   Value Visit(shared_ptr<AST::PostfixExprNode> now);
   Value Visit(shared_ptr<AST::PrimaryExprNode> now);
   Value Visit(shared_ptr<AST::NewExprNode> now);
+  Value Visit(shared_ptr<AST::LiteralNode> now);
   // shared_ptr<Func> BuildMemberFunc(shared_ptr<AST::FuncDefNode>now,
   //                                  const string &class_identifier);
 };

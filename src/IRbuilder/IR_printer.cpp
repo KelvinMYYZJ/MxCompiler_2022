@@ -128,7 +128,12 @@ string IRPrinter::ToString(shared_ptr<Block> block) {
 string IRPrinter::ToLabel(shared_ptr<Block> block) {
   return "label %block" + to_string(block->label);
 }
-string IRPrinter::ToString(Value value) {
+string IRPrinter::ToString(Value value, bool show_type) {
+  if (!show_type) {
+    if (value.reg)
+      return ToString(value.reg);
+    return to_string(value.value);
+  }
   if (value.reg)
     return ToString(value.type) + " " + ToString(value.reg);
   return ToString(value.type) + " " + to_string(value.value);
@@ -149,7 +154,75 @@ string IRPrinter::ToString(RegisterAssignInstr instr) {
   string ret = ToString(instr.left_reg) + " = ";
   if (AnyIs<AllocaExpr>(instr.right_value)) {
     ret += ToString(AnyCast<AllocaExpr>(instr.right_value));
+  } else if (AnyIs<LoadExpr>(instr.right_value)) {
+    ret += ToString(AnyCast<LoadExpr>(instr.right_value));
+  } else if (AnyIs<BinaryExpr>(instr.right_value)) {
+    ret += ToString(AnyCast<BinaryExpr>(instr.right_value));
   }
+  return ret;
+}
+string IRPrinter::ToString(BinaryExpr instr) {
+  string ret;
+  switch (instr.op) {
+  // case IR::BinaryExpr::kLor:
+  //   ret = "";
+  //   break;
+  // case IR::BinaryExpr::kLand:
+  //   ret = "";
+  //   break;
+  case IR::BinaryExpr::kOr:
+    ret = "or";
+    break;
+  case IR::BinaryExpr::kXor:
+    ret = "xor";
+    break;
+  case IR::BinaryExpr::kAnd:
+    ret = "and";
+    break;
+  case IR::BinaryExpr::kEqual:
+    ret = "icmp eq";
+    break;
+  case IR::BinaryExpr::kNotequal:
+    ret = "icmp ne";
+    break;
+  case IR::BinaryExpr::kLess:
+    ret = "icmp slt";
+    break;
+  case IR::BinaryExpr::kLessEqual:
+    ret = "icmp sle";
+    break;
+  case IR::BinaryExpr::kGreater:
+    ret = "icmp sgt";
+    break;
+  case IR::BinaryExpr::kGreaterEqual:
+    ret = "icmp sge";
+    break;
+  case IR::BinaryExpr::kLeftShift:
+    ret = "shl";
+    break;
+  case IR::BinaryExpr::kRightShift:
+    ret = "ashr";
+    break;
+  case IR::BinaryExpr::kPlus:
+    ret = "add";
+    break;
+  case IR::BinaryExpr::kMinus:
+    ret = "sub";
+    break;
+  case IR::BinaryExpr::kStar:
+    ret = "mul";
+    break;
+  case IR::BinaryExpr::kDiv:
+    ret = "sdiv";
+    break;
+  case IR::BinaryExpr::kMod:
+    ret = "srem";
+    break;
+  }
+  ret += " ";
+  ret += ToString(instr.lhs);
+  ret += ", ";
+  ret += ToString(instr.rhs, false);
   return ret;
 }
 string IRPrinter::ToString(ReturnInstr instr) {
@@ -161,15 +234,20 @@ string IRPrinter::ToString(ReturnInstr instr) {
 
 string IRPrinter::ToString(AllocaExpr expr) {
   string ret = "alloca ";
+  string type_str = ToString(expr.type);
   if (expr.size.reg) {
-    ret += "[" + ToString(expr.size) + " x " + expr.type.identifier + "]";
+    ret += "[" + ToString(expr.size) + " x " + type_str + "]";
   } else {
     if (expr.size.value == 1) {
-      ret += expr.type.identifier;
+      ret += type_str;
     } else {
-      ret +=
-          "[" + to_string(expr.size.value) + " x " + expr.type.identifier + "]";
+      ret += "[" + to_string(expr.size.value) + " x " + type_str + "]";
     }
   }
+  return ret;
+}
+string IRPrinter::ToString(LoadExpr expr) {
+  string ret =
+      "load " + ToString(expr.result_type) + ", " + ToString(Value(expr.ptr));
   return ret;
 }

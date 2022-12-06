@@ -39,7 +39,7 @@ signed main() {
     auto ast_root = make_shared<AST::ProgNode>(parse_tree_root);
     ast_root->BuildScope(make_shared<GScope>());
     shared_ptr<IR::IRBuffer> IR_buffer = IRBuilder().BuildIR(ast_root);
-    IRPrinter().Print(IR_buffer.get(), cerr);
+    IRPrinter().Print(IR_buffer.get(), cout);
   } catch (const MyException &exp) {
     cerr << "error!!" << endl << exp.What() << endl;
     return 1;
