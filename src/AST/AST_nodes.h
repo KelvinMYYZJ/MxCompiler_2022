@@ -258,6 +258,7 @@ class PrimaryExprNode {
   shared_ptr<Scope> scope;
   void BuildScope(shared_ptr<Scope> _scope);
   any expr;  // literal | This	| expression | Identifier | lambdaExpr;
+  bool is_func;
   PrimaryExprNode(MxParser::PrimaryExprContext *ctx);
 };
 class LambdaExprNode {

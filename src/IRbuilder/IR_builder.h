@@ -36,6 +36,7 @@ struct IRBuilder {
   void Visit(shared_ptr<AST::ForStmtNode> now);
   void Visit(shared_ptr<AST::ReturnStmtNode> now);
   Value GetRightValue(Value val);
+  Value NowThis();
   Value Visit(shared_ptr<AST::ExpressionNode> now);
   Value Visit(shared_ptr<AST::AssignExprNode> now);
   Value Visit(shared_ptr<AST::LorExprNode> now);
@@ -54,6 +55,9 @@ struct IRBuilder {
   Value Visit(shared_ptr<AST::NewExprNode> now);
   Value Visit(shared_ptr<AST::LiteralNode> now);
   list<Value> Visit(shared_ptr<AST::ArgListNode> now);
+  // obj_ptr must be right value
+  Value VisitMemberVarible(Value obj_ptr, const string &class_identifier,
+                           const string &member_identifier);
   // shared_ptr<Func> BuildMemberFunc(shared_ptr<AST::FuncDefNode>now,
   //                                  const string &class_identifier);
 };

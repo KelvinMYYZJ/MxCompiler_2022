@@ -6,5 +6,5 @@
 - [ ] array
 - [ ] string
 - [ ] build-in functions
-- [ ] class object
+- [x] class object
 - [ ] pass test point

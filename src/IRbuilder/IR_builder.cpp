@@ -37,7 +37,7 @@ IRBuilder::BuildStructInfo(shared_ptr<AST::ClassDefNode> now) {
     string var_identifier = var.first;
     IRType ir_type = var.second;
     struct_info->AddMemberVar(ir_type, var_identifier);
-    now->scope->GiveVarReg(var_identifier);
+    // now->scope->GiveVarReg(var_identifier);
   }
   return struct_info;
 }
@@ -46,13 +46,22 @@ void IRBuilder::PushInitStmt(shared_ptr<AST::VarDefNode> now,
                              shared_ptr<Func> func,
                              shared_ptr<Block> &now_init_block) {
   now_block = now_init_block;
+  auto lst_func = now_func;
+  now_func = func;
   for (auto var_def : now->var_defs) {
     if (var_def.have_expr) {
       auto expr_value = Visit(var_def.expr);
       auto reg = now->scope->GetVarReg(var_def.var_identifier);
+      if (now_class_node && !reg) {
+        // actually [id] refers to this.[id]
+        reg = VisitMemberVarible(NowThis(), now_class_node->class_identifier,
+                                 var_def.var_identifier)
+                  .reg;
+      }
       now_block->PushInstr(StoreInstr(reg, expr_value));
     }
   }
+  now_func = lst_func;
   now_init_block = now_block;
 }
 
@@ -86,6 +95,7 @@ void IRBuilder::Visit(shared_ptr<AST::ClassDefNode> now) {
   result->funcs.push_back(init_func);
   init_func->identifier = class_identifier + "_Init_";
   init_func->ret_type = kVoidIRType;
+  init_func->args.push_back(IRType(ObjectType(now->class_identifier)));
   shared_ptr<Block> now_init_block = init_func->blocks.back();
   shared_ptr<AST::ConstructFuncDefNode> construct_func_node;
   // collect member func
@@ -121,10 +131,14 @@ void IRBuilder::Visit(shared_ptr<AST::FuncDefNode> now) {
   if (now_class_node) {
     func_identifier = now_class_node->class_identifier + "_" + func_identifier;
     func->args.push_back(FuncArg(ObjectType(now_class_node->class_identifier)));
-    now_this = func->args.front().reg;
+    NowThis() = func->args.front().reg;
   }
   func->identifier = func_identifier;
   Visit(now->args_def);
+  if (now->func_identifier == "main" && !now_class_node) {
+    now_block->PushInstr(RegisterAssignInstr(
+        nullptr, FuncCallExpr({}, "_Global_Init_", kVoidIRType)));
+  }
   Visit(now->body);
   if (!now_block->closed) {
     if (func->ret_type == kVoidIRType)
@@ -134,9 +148,6 @@ void IRBuilder::Visit(shared_ptr<AST::FuncDefNode> now) {
   }
   now_func = nullptr;
   now_block = nullptr;
-  if (now_class_node) {
-    now_this = nullptr;
-  }
 }
 
 void IRBuilder::Visit(shared_ptr<AST::VarDefNode> now, bool is_global) {
@@ -149,7 +160,7 @@ void IRBuilder::Visit(shared_ptr<AST::VarDefNode> now, bool is_global) {
       result->global_vars.push_back({var_identifier, ir_type});
       // give reg to AST
       now->scope->GiveVarReg(var_identifier, make_shared<GlobalRegister>(
-                                                 var_identifier, type, false));
+                                                 var_identifier, type, true));
     }
     // push into init func
     PushInitStmt(now, global_init_func, now_global_init_block);
@@ -335,12 +346,17 @@ Value IRBuilder::Visit(shared_ptr<AST::AssignExprNode> now) {
   // return Value(now->value_type.object_type, make_shared<Register>());
   if (!now->have_left_expr)
     return Visit(now->lor_expr);
-  Value val = Visit(now->lor_expr);
   Value left = Visit(now->left_expr);
+  Value val = Visit(now->lor_expr);
   MyAssert(left.is_left, MyException("Assigning to a right value in ir"));
+  if (val.is_null) {
+    val.type = left.type.Deref();
+  }
   now_block->PushInstr(StoreInstr(left, val));
   return val;
 }
+
+Value IRBuilder::NowThis() { return Value(now_func->args.front().reg, false); }
 
 Value IRBuilder::Visit(shared_ptr<AST::LorExprNode> now) {
   if (now->land_exprs.size() == 1) {
@@ -694,6 +710,8 @@ Value IRBuilder::Visit(shared_ptr<AST::PostfixExprNode> now) {
       }
     } else if (auto arg_list_node = AnyCastPtr<AST::ArgListNode>(op)) {
       auto arg_lists = Visit(arg_list_node);
+      if (ret.func.is_member)
+        arg_lists.push_front(ret);
       if (ret.func.ret_type == kVoidIRType) {
         now_block->PushInstr(RegisterAssignInstr(
             nullptr,
@@ -706,6 +724,22 @@ Value IRBuilder::Visit(shared_ptr<AST::PostfixExprNode> now) {
           result,
           FuncCallExpr(arg_lists, ret.func.identifier, ret.func.ret_type)));
       ret = result;
+    } else if (AnyIs<Member>(op)) {
+      ret = GetRightValue(ret);
+      auto member_identifier = AnyCast<Member>(op).member_identifier;
+      auto class_identifier = ret.type.identifier;
+      auto member_type =
+          now->scope->GetClassMember(class_identifier, member_identifier);
+      auto nxt_iter = op_iter;
+      ++nxt_iter;
+      if (nxt_iter != now->suffix_ops.end() &&
+          AnyIs<AST::ArgListNode>(*nxt_iter)) {
+        ret.func.identifier = class_identifier + "_" + member_identifier;
+        ret.func.is_member = true;
+        ret.func.ret_type = IRType(member_type.func_type.ret_type, false);
+      } else {
+        ret = VisitMemberVarible(ret, class_identifier, member_identifier);
+      }
     }
   }
   return ret;
@@ -718,25 +752,38 @@ Value IRBuilder::Visit(shared_ptr<AST::PrimaryExprNode> now) {
     return Visit(expr_node);
   }
   if (AnyIs<This>(now->expr)) {
-    return now_this;
+    return NowThis();
   }
   if (AnyIs<string>(now->expr)) {
     Value ret = 0;
     auto identifier = AnyCast<string>(now->expr);
-    if (now->value_type.have_object_type) {
-      ret = Value(now->value_type.var_info->reg, true);
-    }
-    if (now->value_type.have_func_type) {
+    if (now->is_func) {
       ret.func.identifier = identifier;
       ret.func.is_member = false;
       ret.func.ret_type = IRType(now->value_type.func_type.ret_type, false);
+    } else {
+      if (now_class_node && !now->value_type.var_info->reg) {
+        // actually [id] refers to this.[id]
+        ret = VisitMemberVarible(NowThis(), now_class_node->class_identifier,
+                                 identifier);
+      } else
+        ret = Value(now->value_type.var_info->reg, true);
     }
     return ret;
   }
 }
 
 Value IRBuilder::Visit(shared_ptr<AST::NewExprNode> now) {
-  // TODO
+  if (!now->is_array) {
+    // new an object
+    auto ret = make_shared<Register>(now->type);
+    now_block->PushInstr(
+        RegisterAssignInstr(ret, AllocaExpr(ret->type.Deref())));
+    now_block->PushInstr(RegisterAssignInstr(
+        nullptr, FuncCallExpr({ret}, now->type.type_identifier + "_Init_",
+                              kVoidIRType)));
+    return ret;
+  }
   return 0;
 }
 
@@ -748,7 +795,8 @@ Value IRBuilder::Visit(shared_ptr<AST::LiteralNode> now) {
     return Value(AnyCast<bool>(now->value));
   }
   if (now->type == kNullType) {
-    return Value(0);
+    Value ret(0);
+    ret.is_null = true;
   }
   if (now->type == kStringType) {
     // TODO
@@ -762,4 +810,18 @@ list<Value> IRBuilder::Visit(shared_ptr<AST::ArgListNode> now) {
     ret.push_back(Visit(arg_expr));
   }
   return ret;
+}
+
+Value IRBuilder::VisitMemberVarible(Value obj_ptr,
+                                    const string &class_identifier,
+                                    const string &member_identifier) {
+  auto member_type =
+      gscope->GetClassMember(class_identifier, member_identifier);
+  auto result_type = IRType(member_type.object_type, true);
+  auto nxt_reg = make_shared<Register>(result_type);
+  int member_idx =
+      result->structs[class_identifier]->member_idx[member_identifier];
+  now_block->PushInstr(
+      RegisterAssignInstr(nxt_reg, GetElementPtrExpr(obj_ptr, 0, member_idx)));
+  return Value(nxt_reg, true);
 }

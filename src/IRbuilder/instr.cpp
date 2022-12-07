@@ -34,4 +34,10 @@ BinaryExpr::BinaryExpr(Value _lhs, Value _rhs, BinarayOp _op, IRType _type)
 
 PhiExpr::PhiExpr(IRType _type) : type(_type) {}
 void PhiExpr::PushCase(Case obj) { case_list.push_back(obj); }
+
+GetElementPtrExpr::GetElementPtrExpr(Value _ptr, Value _offset,
+                                     Value _member_idx)
+    : ptr(_ptr), offset(_offset), member_idx(_member_idx),
+      type(_ptr.type.Deref()) {}
+
 } // namespace IR

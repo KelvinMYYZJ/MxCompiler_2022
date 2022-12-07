@@ -98,4 +98,12 @@ struct BinaryExpr {
   BinarayOp op;
   BinaryExpr(Value _lhs, Value _rhs, BinarayOp _op, IRType _type);
 };
+
+struct GetElementPtrExpr {
+  IRType type;
+  Value ptr;
+  Value offset;
+  Value member_idx;
+  GetElementPtrExpr(Value _ptr, Value _offset, Value _member_idx);
+};
 } // namespace IR

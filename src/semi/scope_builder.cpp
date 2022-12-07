@@ -342,6 +342,9 @@ void PostfixExprNode::BuildScope(shared_ptr<Scope> _scope) {
   scope = _scope;
   primary_expr->BuildScope(scope);
   value_type = primary_expr->value_type;
+  if (suffix_ops.size() && AnyCastPtr<ArgListNode>(suffix_ops.front())) {
+    primary_expr->is_func = true;
+  }
   for (auto suffix_op : suffix_ops) {
     if (AnyIs<SuffixUnaryOp>(suffix_op)) {
       MyAssert(value_type.object_leftvalue, "wrong suffix unary op : not left value");
@@ -373,6 +376,7 @@ void PostfixExprNode::BuildScope(shared_ptr<Scope> _scope) {
 }
 void PrimaryExprNode::BuildScope(shared_ptr<Scope> _scope) {
   scope = _scope;
+  is_func = false;
   if (auto literal_node = AnyCastPtr<LiteralNode>(expr)) {
     value_type.SetObjectType(literal_node->type, false);
   } else if (AnyIs<This>(expr)) {

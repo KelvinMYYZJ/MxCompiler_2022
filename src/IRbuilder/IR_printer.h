@@ -34,4 +34,5 @@ struct IRPrinter {
   string ToString(BinaryExpr expr);
   string ToString(FuncCallExpr expr);
   string ToString(PhiExpr expr);
+  string ToString(GetElementPtrExpr expr);
 };

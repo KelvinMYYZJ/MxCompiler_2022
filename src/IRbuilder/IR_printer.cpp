@@ -133,14 +133,26 @@ string IRPrinter::ToLabel(shared_ptr<Block> block, bool show_type) {
   return "label %block" + to_string(block->label);
 }
 string IRPrinter::ToString(Value value, bool show_type) {
-  if (!show_type) {
-    if (value.reg)
-      return ToString(value.reg);
-    return to_string(value.value);
+  // if (!show_type) {
+  //   if (value.reg)
+  //     return ToString(value.reg);
+  //   return to_string(value.value);
+  // }
+  // if (value.reg)
+  //   return ToString(value.type) + " " + ToString(value.reg);
+  // return ToString(value.type) + " " + to_string(value.value);
+  string val;
+  string type = ToString(value.type);
+  if (value.reg) {
+    val = ToString(value.reg);
+  } else if (value.type.dim && value.value == 0) {
+    val = "null";
+  } else {
+    val = to_string(value.value);
   }
-  if (value.reg)
-    return ToString(value.type) + " " + ToString(value.reg);
-  return ToString(value.type) + " " + to_string(value.value);
+  if (show_type)
+    return type + " " + val;
+  return val;
 }
 string IRPrinter::ToString(StoreInstr instr) {
   return "store " + ToString(instr.value) + ", " + ToString(instr.ptr);
@@ -170,6 +182,8 @@ string IRPrinter::ToString(RegisterAssignInstr instr) {
     ret += ToString(AnyCast<FuncCallExpr>(instr.right_value));
   } else if (AnyIs<PhiExpr>(instr.right_value)) {
     ret += ToString(AnyCast<PhiExpr>(instr.right_value));
+  } else if (AnyIs<GetElementPtrExpr>(instr.right_value)) {
+    ret += ToString(AnyCast<GetElementPtrExpr>(instr.right_value));
   }
   return ret;
 }
@@ -284,5 +298,13 @@ string IRPrinter::ToString(PhiExpr expr) {
   }
   ret.pop_back();
   ret.pop_back();
+  return ret;
+}
+
+string IRPrinter::ToString(GetElementPtrExpr expr) {
+  string ret = "getelementptr inbounds " + ToString(expr.type);
+  ret += ", " + ToString(expr.ptr);
+  ret += ", " + ToString(expr.offset);
+  ret += ", " + ToString(expr.member_idx);
   return ret;
 }

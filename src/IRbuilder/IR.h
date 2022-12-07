@@ -55,6 +55,7 @@ struct Value {
   // when is_left is true, the type means the type of value it is pointing to
   // so actually it's type must be ptr.
   bool is_left;
+  bool is_null;
   struct IRFuncInfo {
     string identifier;
     bool is_member;
