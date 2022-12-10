@@ -10,10 +10,10 @@ struct ObjectType {
   ObjectType();
   string type_identifier;
   int dim;
-  ObjectType(const string& _type_identifier, const int& _dim = 0);
-  ObjectType(MxParser::TypeNameContext* ctx);
-  bool operator==(const ObjectType& rhs) const;
-  bool operator!=(const ObjectType& rhs) const;
+  ObjectType(const string &_type_identifier, const int &_dim = 0);
+  ObjectType(MxParser::TypeNameContext *ctx);
+  bool operator==(const ObjectType &rhs) const;
+  bool operator!=(const ObjectType &rhs) const;
   bool IsBasicType() const;
 };
 
@@ -27,7 +27,7 @@ struct FuncType {
  public:
   ObjectType ret_type;
   list<ObjectType> arg_type;
-  ObjectType AcceptArgList(const list<ObjectType>& args);
+  ObjectType AcceptArgList(const list<ObjectType> &args);
 };
 
 struct RetType {
@@ -37,9 +37,9 @@ struct RetType {
   ObjectType type;
   bool have_ret;
   RetType();
-  RetType(MxParser::TypeNameContext* ctx);
-  bool operator==(const RetType& rhs) const;
-  bool operator!=(const RetType& rhs) const;
+  RetType(MxParser::TypeNameContext *ctx);
+  bool operator==(const RetType &rhs) const;
+  bool operator!=(const RetType &rhs) const;
   void AddRet(ObjectType ret_type);
   void AddRet(RetType obj);
   bool IsVoid() const;
@@ -50,14 +50,14 @@ struct Arg {
   Arg();
   ObjectType type;
   string arg_identifier;
-  Arg(const ObjectType& _type, const string& _arg_identifier);
+  Arg(const ObjectType &_type, const string &_arg_identifier);
 };
 
 struct Member {
  public:
   Member();
   string member_identifier;
-  Member(const string& _member_identifier);
+  Member(const string &_member_identifier);
 };
 
 struct This {};

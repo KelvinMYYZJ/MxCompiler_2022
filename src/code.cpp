@@ -21,7 +21,7 @@ using namespace antlr4;
 
 signed main() {
 #ifndef ONLINE_JUDGE
-  freopen("!input.txt", "r", stdin);
+  freopen("input.mx", "r", stdin);
 // freopen("!output.txt","w",stdout);
 #endif
   try {

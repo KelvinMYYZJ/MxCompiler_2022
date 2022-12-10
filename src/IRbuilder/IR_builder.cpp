@@ -1,7 +1,9 @@
 #include "IR_builder.h"
 
 #include <cstdlib>
+#include <list>
 #include <memory>
+#include <string>
 
 #include "AST_nodes.h"
 #include "IR_type.h"
@@ -15,8 +17,7 @@ using namespace IR;
 
 shared_ptr<Block> IRBuilder::MakeBlock(bool push_now) {
   auto ret = make_shared<Block>();
-  if (push_now)
-    now_func->blocks.push_back(ret);
+  if (push_now) now_func->blocks.push_back(ret);
   return ret;
 }
 shared_ptr<IRBuffer> IRBuilder::BuildIR(shared_ptr<AST::ProgNode> now) {
@@ -26,8 +27,8 @@ shared_ptr<IRBuffer> IRBuilder::BuildIR(shared_ptr<AST::ProgNode> now) {
   return ret;
 }
 
-shared_ptr<Struct>
-IRBuilder::BuildStructInfo(shared_ptr<AST::ClassDefNode> now) {
+shared_ptr<Struct> IRBuilder::BuildStructInfo(shared_ptr<AST::ClassDefNode> now) {
+  now_class_node = now.get();
   auto struct_info = make_shared<Struct>();
   int now_idx = 0;
   string class_identifier = now->class_identifier;
@@ -39,11 +40,11 @@ IRBuilder::BuildStructInfo(shared_ptr<AST::ClassDefNode> now) {
     struct_info->AddMemberVar(ir_type, var_identifier);
     // now->scope->GiveVarReg(var_identifier);
   }
+  now_class_node = nullptr;
   return struct_info;
 }
 
-void IRBuilder::PushInitStmt(shared_ptr<AST::VarDefNode> now,
-                             shared_ptr<Func> func,
+void IRBuilder::PushInitStmt(shared_ptr<AST::VarDefNode> now, shared_ptr<Func> func,
                              shared_ptr<Block> &now_init_block) {
   now_block = now_init_block;
   auto lst_func = now_func;
@@ -54,9 +55,7 @@ void IRBuilder::PushInitStmt(shared_ptr<AST::VarDefNode> now,
       auto reg = now->scope->GetVarReg(var_def.var_identifier);
       if (now_class_node && !reg) {
         // actually [id] refers to this.[id]
-        reg = VisitMemberVarible(NowThis(), now_class_node->class_identifier,
-                                 var_def.var_identifier)
-                  .reg;
+        reg = VisitMemberVarible(NowThis(), now_class_node->class_identifier, var_def.var_identifier).reg;
       }
       now_block->PushInstr(StoreInstr(reg, expr_value));
     }
@@ -72,6 +71,17 @@ void IRBuilder::Visit(shared_ptr<AST::ProgNode> now) {
   global_init_func->identifier = "_Global_Init_";
   global_init_func->ret_type = kVoidIRType;
   now_global_init_block = global_init_func->blocks.front();
+
+  for (auto def : now->definitions) {
+    if (auto class_def_node = AnyCastPtr<AST::ClassDefNode>(def)) {
+      result->structs[class_def_node->class_identifier] = (BuildStructInfo(class_def_node));
+    }
+  }
+  auto string_struct = make_shared<Struct>();
+  string_struct->AddMemberVar(kCharPtrIRType, "_val");
+  string_struct->AddMemberVar(kIntIRType, "_size");
+  string_struct->struct_identifier = "string";
+  result->structs["string"] = string_struct;
   for (auto def : now->definitions) {
     if (auto class_def_node = AnyCastPtr<AST::ClassDefNode>(def)) {
       Visit(class_def_node);
@@ -89,7 +99,7 @@ void IRBuilder::Visit(shared_ptr<AST::ClassDefNode> now) {
   auto class_identifier = now->class_identifier;
   now_class_node = now.get();
   // collect member varible info
-  result->structs[class_identifier] = (BuildStructInfo(now));
+  // result->structs[class_identifier] = (BuildStructInfo(now));
   // build construct func
   auto init_func = make_shared<Func>();
   result->funcs.push_back(init_func);
@@ -136,8 +146,7 @@ void IRBuilder::Visit(shared_ptr<AST::FuncDefNode> now) {
   func->identifier = func_identifier;
   Visit(now->args_def);
   if (now->func_identifier == "main" && !now_class_node) {
-    now_block->PushInstr(RegisterAssignInstr(
-        nullptr, FuncCallExpr({}, "_Global_Init_", kVoidIRType)));
+    now_block->PushInstr(RegisterAssignInstr(nullptr, FuncCallExpr({}, "_Global_Init_", kVoidIRType)));
   }
   Visit(now->body);
   if (!now_block->closed) {
@@ -159,8 +168,7 @@ void IRBuilder::Visit(shared_ptr<AST::VarDefNode> now, bool is_global) {
       // collect varible info
       result->global_vars.push_back({var_identifier, ir_type});
       // give reg to AST
-      now->scope->GiveVarReg(var_identifier, make_shared<GlobalRegister>(
-                                                 var_identifier, type, true));
+      now->scope->GiveVarReg(var_identifier, make_shared<GlobalRegister>(var_identifier, type, true));
     }
     // push into init func
     PushInitStmt(now, global_init_func, now_global_init_block);
@@ -168,11 +176,10 @@ void IRBuilder::Visit(shared_ptr<AST::VarDefNode> now, bool is_global) {
   }
   for (auto var_def : now->var_defs) {
     auto var_identifier = var_def.var_identifier;
-    now->scope->GiveVarReg(var_identifier); // TODO : now class member var cant
-                                            // be init outsides class init func
+    now->scope->GiveVarReg(var_identifier);  // TODO : now class member var cant
+                                             // be init outsides class init func
     now_block->PushInstr(
-        RegisterAssignInstr(now->scope->GetVarReg(var_identifier),
-                            AllocaExpr(IRType(now->type, false))));
+        RegisterAssignInstr(now->scope->GetVarReg(var_identifier), AllocaExpr(IRType(now->type, false))));
   }
   PushInitStmt(now, now_func, now_block);
 }
@@ -192,8 +199,7 @@ void IRBuilder::Visit(shared_ptr<AST::ArgListDefNode> now) {
     // }
     auto arg_var_ptr = make_shared<Register>(arg_def.type, true);
     now->scope->GiveVarReg(var_identifier, arg_var_ptr);
-    now_block->PushInstr(
-        RegisterAssignInstr(arg_var_ptr, AllocaExpr(arg_def.type)));
+    now_block->PushInstr(RegisterAssignInstr(arg_var_ptr, AllocaExpr(arg_def.type)));
     now_block->PushInstr(StoreInstr(arg_var_ptr, Value(now_func_arg.reg)));
   }
 }
@@ -214,8 +220,7 @@ void IRBuilder::Visit(shared_ptr<AST::StmtBlockNode> now) {
     } else if (auto expr_stmt = AnyCastPtr<AST::ExprStmtNode>(stmt)) {
       Visit(expr_stmt->expr);
     }
-    if (now_block->closed)
-      return;
+    if (now_block->closed) return;
   }
 }
 
@@ -239,15 +244,13 @@ void IRBuilder::Visit(shared_ptr<AST::IfStmtNode> now) {
       now_block->PushInstr(BrInstr(next_block));
       br_to_next = true;
     }
-    if (!br_to_next)
-      return;
+    if (!br_to_next) return;
     now_block = next_block;
   } else {
     now_block->PushInstr(ConditionBrInstr(condition, then_block, next_block));
     now_block = then_block;
     Visit(now->block);
-    if (!now_block->closed)
-      now_block->PushInstr(BrInstr(next_block));
+    if (!now_block->closed) now_block->PushInstr(BrInstr(next_block));
   }
   now_func->blocks.push_back(next_block);
   now_block = next_block;
@@ -265,8 +268,7 @@ void IRBuilder::Visit(shared_ptr<AST::WhileStmtNode> now) {
   now_block->PushInstr(ConditionBrInstr(condition, body_block, next_block));
   now_block = body_block;
   Visit(now->block);
-  if (!now_block->closed)
-    now_block->PushInstr(BrInstr(condition_block));
+  if (!now_block->closed) now_block->PushInstr(BrInstr(condition_block));
   now_block = next_block;
 }
 void IRBuilder::Visit(shared_ptr<AST::ForStmtNode> now) {
@@ -291,8 +293,7 @@ void IRBuilder::Visit(shared_ptr<AST::ForStmtNode> now) {
     now_block->PushInstr(ConditionBrInstr(condition, body_block, next_block));
     now_block = body_block;
     Visit(now->block);
-    if (!now_block->closed)
-      now_block->PushInstr(BrInstr(continue_target.top()));
+    if (!now_block->closed) now_block->PushInstr(BrInstr(continue_target.top()));
     if (now->have_step_expr) {
       now_block = step_block;
       Visit(now->step_expr);
@@ -309,8 +310,7 @@ void IRBuilder::Visit(shared_ptr<AST::ForStmtNode> now) {
     now_block->PushInstr(BrInstr(body_block));
     now_block = body_block;
     Visit(now->block);
-    if (!now_block->closed)
-      now_block->PushInstr(BrInstr(continue_target.top()));
+    if (!now_block->closed) now_block->PushInstr(BrInstr(continue_target.top()));
     if (now->have_step_expr) {
       now_block = step_block;
       Visit(now->step_expr);
@@ -331,8 +331,7 @@ void IRBuilder::Visit(shared_ptr<AST::ReturnStmtNode> now) {
   now_block->PushInstr(ReturnInstr(ret));
 }
 Value IRBuilder::GetRightValue(Value val) {
-  if (!val.is_left)
-    return val;
+  if (!val.is_left) return val;
   auto now_right_val = make_shared<Register>(val.type.Deref());
   now_block->PushInstr(RegisterAssignInstr(now_right_val, LoadExpr(val.reg)));
   return Value(now_right_val, false);
@@ -344,8 +343,7 @@ Value IRBuilder::Visit(shared_ptr<AST::ExpressionNode> now) {
 
 Value IRBuilder::Visit(shared_ptr<AST::AssignExprNode> now) {
   // return Value(now->value_type.object_type, make_shared<Register>());
-  if (!now->have_left_expr)
-    return Visit(now->lor_expr);
+  if (!now->have_left_expr) return Visit(now->lor_expr);
   Value left = Visit(now->left_expr);
   Value val = Visit(now->lor_expr);
   MyAssert(left.is_left, MyException("Assigning to a right value in ir"));
@@ -423,8 +421,7 @@ Value IRBuilder::Visit(shared_ptr<AST::OrExprNode> now) {
     }
     auto now_val = GetRightValue(Visit(now_xor_expr));
     auto new_reg = Value(kIntIRType);
-    now_block->PushInstr(RegisterAssignInstr(
-        new_reg.reg, BinaryExpr(ret, now_val, BinaryExpr::kOr, kIntIRType)));
+    now_block->PushInstr(RegisterAssignInstr(new_reg.reg, BinaryExpr(ret, now_val, BinaryExpr::kOr, kIntIRType)));
     ret = new_reg;
   }
   return ret;
@@ -442,8 +439,7 @@ Value IRBuilder::Visit(shared_ptr<AST::XorExprNode> now) {
     }
     auto now_val = GetRightValue(Visit(now_and_expr));
     auto new_reg = Value(kIntIRType);
-    now_block->PushInstr(RegisterAssignInstr(
-        new_reg.reg, BinaryExpr(ret, now_val, BinaryExpr::kXor, kIntIRType)));
+    now_block->PushInstr(RegisterAssignInstr(new_reg.reg, BinaryExpr(ret, now_val, BinaryExpr::kXor, kIntIRType)));
     ret = new_reg;
   }
   return ret;
@@ -461,8 +457,7 @@ Value IRBuilder::Visit(shared_ptr<AST::AndExprNode> now) {
     }
     auto now_val = GetRightValue(Visit(now_equal_expr));
     auto new_reg = Value(kIntIRType);
-    now_block->PushInstr(RegisterAssignInstr(
-        new_reg.reg, BinaryExpr(ret, now_val, BinaryExpr::kAnd, kIntIRType)));
+    now_block->PushInstr(RegisterAssignInstr(new_reg.reg, BinaryExpr(ret, now_val, BinaryExpr::kAnd, kIntIRType)));
     ret = new_reg;
   }
   return ret;
@@ -484,15 +479,27 @@ Value IRBuilder::Visit(shared_ptr<AST::EqualityExprNode> now) {
     auto new_reg = Value(kBoolIRType);
     BinaryExpr::BinarayOp op;
     switch (*now_op_iter) {
-    case AST::EqualityExprNode::kEqual:
-      op = IR::BinaryExpr::kEqual;
-      break;
-    case AST::EqualityExprNode::kNotEqual:
-      op = IR::BinaryExpr::kNotequal;
-      break;
+      case AST::EqualityExprNode::kEqual:
+        op = IR::BinaryExpr::kEqual;
+        break;
+      case AST::EqualityExprNode::kNotEqual:
+        op = IR::BinaryExpr::kNotequal;
+        break;
     }
-    now_block->PushInstr(RegisterAssignInstr(
-        new_reg.reg, BinaryExpr(ret, now_val, op, kBoolIRType)));
+    if (ret.type == kStringIRType) {
+      list<Value> arg_list = {ret, now_val};
+      string func_identifier;
+      switch (op) {
+        case IR::BinaryExpr::kEqual:
+          func_identifier = "_string_eq";
+          break;
+        case IR::BinaryExpr::kNotequal:
+          func_identifier = "_string_neq";
+          break;
+      }
+      now_block->PushInstr(RegisterAssignInstr(new_reg.reg, FuncCallExpr(arg_list, func_identifier, kBoolIRType)));
+    } else
+      now_block->PushInstr(RegisterAssignInstr(new_reg.reg, BinaryExpr(ret, now_val, op, kBoolIRType)));
     ret = new_reg;
     ++now_op_iter;
   }
@@ -514,21 +521,47 @@ Value IRBuilder::Visit(shared_ptr<AST::RelationExprNode> now) {
     auto new_reg = Value(kBoolIRType);
     BinaryExpr::BinarayOp op;
     switch (*now_op_iter) {
-    case AST::RelationExprNode::kGreater:
-      op = IR::BinaryExpr::kGreater;
-      break;
-    case AST::RelationExprNode::kGreaterEqual:
-      op = IR::BinaryExpr::kGreaterEqual;
-      break;
-    case AST::RelationExprNode::kLessEqual:
-      op = IR::BinaryExpr::kLessEqual;
-      break;
-    case AST::RelationExprNode::kLess:
-      op = IR::BinaryExpr::kLess;
-      break;
+      case AST::RelationExprNode::kLess:
+        op = IR::BinaryExpr::kLess;
+        break;
+      case AST::RelationExprNode::kLessEqual:
+        op = IR::BinaryExpr::kLessEqual;
+        break;
+      case AST::RelationExprNode::kGreater:
+        op = IR::BinaryExpr::kGreater;
+        break;
+      case AST::RelationExprNode::kGreaterEqual:
+        op = IR::BinaryExpr::kGreaterEqual;
+        break;
     }
-    now_block->PushInstr(RegisterAssignInstr(
-        new_reg.reg, BinaryExpr(ret, now_val, op, kBoolIRType)));
+    if (ret.type == kStringIRType) {
+      list<Value> arg_list;
+      string func_identifier;
+      switch (op) {
+        case IR::BinaryExpr::kLess:
+          func_identifier = "_string_lt";
+          arg_list.push_back(ret);
+          arg_list.push_back(now_val);
+          break;
+        case IR::BinaryExpr::kLessEqual:
+          func_identifier = "_string_le";
+          arg_list.push_back(ret);
+          arg_list.push_back(now_val);
+          break;
+        case IR::BinaryExpr::kGreater:
+          func_identifier = "_string_lt";
+          arg_list.push_back(now_val);
+          arg_list.push_back(ret);
+          break;
+        case IR::BinaryExpr::kGreaterEqual:
+          func_identifier = "_string_le";
+          arg_list.push_back(now_val);
+          arg_list.push_back(ret);
+          break;
+      }
+      now_block->PushInstr(RegisterAssignInstr(new_reg.reg, FuncCallExpr(arg_list, func_identifier, kBoolIRType)));
+    } else
+      now_block->PushInstr(RegisterAssignInstr(new_reg.reg, BinaryExpr(ret, now_val, op, kBoolIRType)));
     ret = new_reg;
     ++now_op_iter;
   }
@@ -550,15 +583,14 @@ Value IRBuilder::Visit(shared_ptr<AST::ShiftExprNode> now) {
     auto new_reg = Value(kIntIRType);
     BinaryExpr::BinarayOp op;
     switch (*now_op_iter) {
-    case AST::ShiftExprNode::kLeftShift:
-      op = IR::BinaryExpr::kLeftShift;
-      break;
-    case AST::ShiftExprNode::kRightShift:
-      op = IR::BinaryExpr::kRightShift;
-      break;
+      case AST::ShiftExprNode::kLeftShift:
+        op = IR::BinaryExpr::kLeftShift;
+        break;
+      case AST::ShiftExprNode::kRightShift:
+        op = IR::BinaryExpr::kRightShift;
+        break;
     }
-    now_block->PushInstr(RegisterAssignInstr(
-        new_reg.reg, BinaryExpr(ret, now_val, op, kIntIRType)));
+    now_block->PushInstr(RegisterAssignInstr(new_reg.reg, BinaryExpr(ret, now_val, op, kIntIRType)));
     ret = new_reg;
     ++now_op_iter;
   }
@@ -580,15 +612,19 @@ Value IRBuilder::Visit(shared_ptr<AST::AddExprNode> now) {
     auto new_reg = Value(kIntIRType);
     BinaryExpr::BinarayOp op;
     switch (*now_op_iter) {
-    case AST::AddExprNode::kPlus:
-      op = IR::BinaryExpr::kPlus;
-      break;
-    case AST::AddExprNode::kMinus:
-      op = IR::BinaryExpr::kMinus;
-      break;
+      case AST::AddExprNode::kPlus:
+        op = IR::BinaryExpr::kPlus;
+        break;
+      case AST::AddExprNode::kMinus:
+        op = IR::BinaryExpr::kMinus;
+        break;
     }
-    now_block->PushInstr(RegisterAssignInstr(
-        new_reg.reg, BinaryExpr(ret, now_val, op, kIntIRType)));
+    if (ret.type == kStringIRType) {
+      new_reg = Value(kStringIRType);
+      now_block->PushInstr(
+          RegisterAssignInstr(new_reg.reg, FuncCallExpr({ret, now_val}, "_string_add", kStringIRType)));
+    } else
+      now_block->PushInstr(RegisterAssignInstr(new_reg.reg, BinaryExpr(ret, now_val, op, kIntIRType)));
     ret = new_reg;
     ++now_op_iter;
   }
@@ -610,18 +646,17 @@ Value IRBuilder::Visit(shared_ptr<AST::MultiExprNode> now) {
     auto new_reg = Value(kIntIRType);
     BinaryExpr::BinarayOp op;
     switch (*now_op_iter) {
-    case AST::MultiExprNode::kStar:
-      op = IR::BinaryExpr::kStar;
-      break;
-    case AST::MultiExprNode::kDiv:
-      op = IR::BinaryExpr::kDiv;
-      break;
-    case AST::MultiExprNode::kMod:
-      op = IR::BinaryExpr::kMod;
-      break;
+      case AST::MultiExprNode::kStar:
+        op = IR::BinaryExpr::kStar;
+        break;
+      case AST::MultiExprNode::kDiv:
+        op = IR::BinaryExpr::kDiv;
+        break;
+      case AST::MultiExprNode::kMod:
+        op = IR::BinaryExpr::kMod;
+        break;
     }
-    now_block->PushInstr(RegisterAssignInstr(
-        new_reg.reg, BinaryExpr(ret, now_val, op, kIntIRType)));
+    now_block->PushInstr(RegisterAssignInstr(new_reg.reg, BinaryExpr(ret, now_val, op, kIntIRType)));
     ret = new_reg;
     ++now_op_iter;
   }
@@ -637,103 +672,89 @@ Value IRBuilder::Visit(shared_ptr<AST::UnaryExprNode> now) {
   for (auto op : now->prefix_unary_ops) {
     Value val = GetRightValue(ret);
     switch (op) {
-    case AST::UnaryExprNode::kPlusPlus: {
-      MyAssert(ret.is_left, MyException("++ to a r-value in ir"));
-      Value result(kIntIRType);
-      now_block->PushInstr(RegisterAssignInstr(
-          result.reg, BinaryExpr(val, 1, IR::BinaryExpr::kPlus, kIntIRType)));
-      now_block->PushInstr(StoreInstr(ret, result));
-      break;
-    }
-    case AST::UnaryExprNode::kMinusMinus: {
-      MyAssert(ret.is_left, MyException("-- to a r-value in ir"));
-      Value result(kIntIRType);
-      now_block->PushInstr(RegisterAssignInstr(
-          result.reg, BinaryExpr(val, 1, IR::BinaryExpr::kMinus, kIntIRType)));
-      now_block->PushInstr(StoreInstr(ret, result));
-      break;
-    }
-    case AST::UnaryExprNode::kNot: {
-      Value result(kBoolIRType);
-      now_block->PushInstr(RegisterAssignInstr(
-          result.reg, BinaryExpr(val, Value(1, kBoolIRType),
-                                 IR::BinaryExpr::kXor, kBoolIRType)));
-      ret = result;
-      break;
-    }
-    case AST::UnaryExprNode::kTilde: {
-      Value result(kIntIRType);
-      now_block->PushInstr(RegisterAssignInstr(
-          result.reg, BinaryExpr(val, -1, IR::BinaryExpr::kXor, kIntIRType)));
-      ret = result;
-      break;
-    }
-    case AST::UnaryExprNode::kMinus: {
-      Value result(kIntIRType);
-      now_block->PushInstr(RegisterAssignInstr(
-          result.reg, BinaryExpr(0, val, IR::BinaryExpr::kMinus, kIntIRType)));
-      ret = result;
-      break;
-    }
+      case AST::UnaryExprNode::kPlusPlus: {
+        MyAssert(ret.is_left, MyException("++ to a r-value in ir"));
+        Value result(kIntIRType);
+        now_block->PushInstr(RegisterAssignInstr(result.reg, BinaryExpr(val, 1, IR::BinaryExpr::kPlus, kIntIRType)));
+        now_block->PushInstr(StoreInstr(ret, result));
+        break;
+      }
+      case AST::UnaryExprNode::kMinusMinus: {
+        MyAssert(ret.is_left, MyException("-- to a r-value in ir"));
+        Value result(kIntIRType);
+        now_block->PushInstr(RegisterAssignInstr(result.reg, BinaryExpr(val, 1, IR::BinaryExpr::kMinus, kIntIRType)));
+        now_block->PushInstr(StoreInstr(ret, result));
+        break;
+      }
+      case AST::UnaryExprNode::kNot: {
+        Value result(kBoolIRType);
+        now_block->PushInstr(
+            RegisterAssignInstr(result.reg, BinaryExpr(val, Value(1, kBoolIRType), IR::BinaryExpr::kXor, kBoolIRType)));
+        ret = result;
+        break;
+      }
+      case AST::UnaryExprNode::kTilde: {
+        Value result(kIntIRType);
+        now_block->PushInstr(RegisterAssignInstr(result.reg, BinaryExpr(val, -1, IR::BinaryExpr::kXor, kIntIRType)));
+        ret = result;
+        break;
+      }
+      case AST::UnaryExprNode::kMinus: {
+        Value result(kIntIRType);
+        now_block->PushInstr(RegisterAssignInstr(result.reg, BinaryExpr(0, val, IR::BinaryExpr::kMinus, kIntIRType)));
+        ret = result;
+        break;
+      }
     }
   }
   return ret;
 }
 Value IRBuilder::Visit(shared_ptr<AST::PostfixExprNode> now) {
   Value ret = Visit(now->primary_expr);
-  for (auto op_iter = now->suffix_ops.begin(); op_iter != now->suffix_ops.end();
-       ++op_iter) {
+  for (auto op_iter = now->suffix_ops.begin(); op_iter != now->suffix_ops.end(); ++op_iter) {
     auto op = *op_iter;
     if (AnyIs<AST::PostfixExprNode::SuffixUnaryOp>(op)) {
       switch (AnyCast<AST::PostfixExprNode::SuffixUnaryOp>(op)) {
-      case AST::PostfixExprNode::kPlusPlus: {
-        MyAssert(ret.is_left, MyException("++ to a r-value in ir"));
-        Value val = GetRightValue(ret);
-        Value result(kIntIRType);
-        now_block->PushInstr(RegisterAssignInstr(
-            result.reg, BinaryExpr(val, 1, IR::BinaryExpr::kPlus, kIntIRType)));
-        now_block->PushInstr(StoreInstr(ret, result));
-        ret = val;
-        break;
-      }
-      case AST::PostfixExprNode::kMinusMinus: {
-        MyAssert(ret.is_left, MyException("-- to a r-value in ir"));
-        Value val = GetRightValue(ret);
-        Value result(kIntIRType);
-        now_block->PushInstr(RegisterAssignInstr(
-            result.reg,
-            BinaryExpr(val, 1, IR::BinaryExpr::kMinus, kIntIRType)));
-        now_block->PushInstr(StoreInstr(ret, result));
-        ret = val;
-        break;
-      }
+        case AST::PostfixExprNode::kPlusPlus: {
+          MyAssert(ret.is_left, MyException("++ to a r-value in ir"));
+          Value val = GetRightValue(ret);
+          Value result(kIntIRType);
+          now_block->PushInstr(RegisterAssignInstr(result.reg, BinaryExpr(val, 1, IR::BinaryExpr::kPlus, kIntIRType)));
+          now_block->PushInstr(StoreInstr(ret, result));
+          ret = val;
+          break;
+        }
+        case AST::PostfixExprNode::kMinusMinus: {
+          MyAssert(ret.is_left, MyException("-- to a r-value in ir"));
+          Value val = GetRightValue(ret);
+          Value result(kIntIRType);
+          now_block->PushInstr(RegisterAssignInstr(result.reg, BinaryExpr(val, 1, IR::BinaryExpr::kMinus, kIntIRType)));
+          now_block->PushInstr(StoreInstr(ret, result));
+          ret = val;
+          break;
+        }
       }
     } else if (auto arg_list_node = AnyCastPtr<AST::ArgListNode>(op)) {
       auto arg_lists = Visit(arg_list_node);
-      if (ret.func.is_member)
-        arg_lists.push_front(ret);
-      if (ret.func.ret_type == kVoidIRType) {
-        now_block->PushInstr(RegisterAssignInstr(
-            nullptr,
-            FuncCallExpr(arg_lists, ret.func.identifier, ret.func.ret_type)));
-        ret = 0;
-        continue;
-      }
+      if (ret.func.is_member) arg_lists.push_front(ret);
+      // if (ret.func.ret_type == kVoidIRType) {
+      //   now_block->PushInstr(
+      //       RegisterAssignInstr(nullptr, FuncCallExpr(arg_lists, ret.func.identifier, ret.func.ret_type)));
+      //   ret = 0;
+      //   continue;
+      // }
       auto result = make_shared<Register>(ret.func.ret_type);
-      now_block->PushInstr(RegisterAssignInstr(
-          result,
-          FuncCallExpr(arg_lists, ret.func.identifier, ret.func.ret_type)));
+      now_block->PushInstr(RegisterAssignInstr((ret.func.ret_type == kVoidIRType) ? nullptr : result,
+                                               FuncCallExpr(arg_lists, ret.func.identifier, ret.func.ret_type)));
       ret = result;
     } else if (AnyIs<Member>(op)) {
       ret = GetRightValue(ret);
       auto member_identifier = AnyCast<Member>(op).member_identifier;
       auto class_identifier = ret.type.identifier;
-      auto member_type =
-          now->scope->GetClassMember(class_identifier, member_identifier);
+      auto member_type = now->scope->GetClassMember(class_identifier, member_identifier);
       auto nxt_iter = op_iter;
       ++nxt_iter;
-      if (nxt_iter != now->suffix_ops.end() &&
-          AnyIs<AST::ArgListNode>(*nxt_iter)) {
+      if (nxt_iter != now->suffix_ops.end() && AnyCastPtr<AST::ArgListNode>(*nxt_iter)) {
         ret.func.identifier = class_identifier + "_" + member_identifier;
         ret.func.is_member = true;
         ret.func.ret_type = IRType(member_type.func_type.ret_type, false);
@@ -764,24 +785,22 @@ Value IRBuilder::Visit(shared_ptr<AST::PrimaryExprNode> now) {
     } else {
       if (now_class_node && !now->value_type.var_info->reg) {
         // actually [id] refers to this.[id]
-        ret = VisitMemberVarible(NowThis(), now_class_node->class_identifier,
-                                 identifier);
+        ret = VisitMemberVarible(NowThis(), now_class_node->class_identifier, identifier);
       } else
         ret = Value(now->value_type.var_info->reg, true);
     }
     return ret;
   }
+  return 0;
 }
 
 Value IRBuilder::Visit(shared_ptr<AST::NewExprNode> now) {
   if (!now->is_array) {
     // new an object
     auto ret = make_shared<Register>(now->type);
+    now_block->PushInstr(RegisterAssignInstr(ret, AllocaExpr(ret->type.Deref())));
     now_block->PushInstr(
-        RegisterAssignInstr(ret, AllocaExpr(ret->type.Deref())));
-    now_block->PushInstr(RegisterAssignInstr(
-        nullptr, FuncCallExpr({ret}, now->type.type_identifier + "_Init_",
-                              kVoidIRType)));
+        RegisterAssignInstr(nullptr, FuncCallExpr({ret}, now->type.type_identifier + "_Init_", kVoidIRType)));
     return ret;
   }
   return 0;
@@ -799,7 +818,28 @@ Value IRBuilder::Visit(shared_ptr<AST::LiteralNode> now) {
     ret.is_null = true;
   }
   if (now->type == kStringType) {
-    // TODO
+    auto val = AnyCast<string>(now->value);
+    if (!result->string_literals.count(val)) {
+      int now_idx = result->string_literals.size();
+      string new_reg_label = "str.literal_" + to_string(now_idx);
+      IRType type = kCharPtrIRType;
+      type.size = val.length() + 1;
+      result->string_literals[val] = make_shared<GlobalRegister>(new_reg_label, type);
+    }
+    auto literal_reg = result->string_literals[val];
+    auto ret = make_shared<Register>(kStringIRType);
+    now_block->PushInstr(RegisterAssignInstr(ret, AllocaExpr(kStringIRType.Deref())));
+    // auto val_ptr = make_shared<Register>(kCharPtrIRType.Ref());
+    // now_block->PushInstr(RegisterAssignInstr(val_ptr, GetElementPtrExpr(ret, 0, 0)));
+    auto val_ptr = VisitMemberVarible(ret, "string", "_val");
+    auto literal_ptr = make_shared<Register>(kCharPtrIRType);
+    now_block->PushInstr(RegisterAssignInstr(literal_ptr, BitcastExpr(literal_reg, kCharPtrIRType)));
+    now_block->PushInstr(StoreInstr(val_ptr, literal_ptr));
+    auto size_ptr = VisitMemberVarible(ret, "string", "_size");
+    // auto size_ptr = make_shared<Register>(kIntType, true);
+    // now_block->PushInstr(RegisterAssignInstr(size_ptr, GetElementPtrExpr(ret, 0, 1)));
+    now_block->PushInstr(StoreInstr(size_ptr, int(val.length())));
+    return ret;
   }
   return 0;
 }
@@ -812,16 +852,11 @@ list<Value> IRBuilder::Visit(shared_ptr<AST::ArgListNode> now) {
   return ret;
 }
 
-Value IRBuilder::VisitMemberVarible(Value obj_ptr,
-                                    const string &class_identifier,
-                                    const string &member_identifier) {
-  auto member_type =
-      gscope->GetClassMember(class_identifier, member_identifier);
-  auto result_type = IRType(member_type.object_type, true);
+Value IRBuilder::VisitMemberVarible(Value obj_ptr, const string &class_identifier, const string &member_identifier) {
+  int member_idx = result->structs[class_identifier]->member_idx[member_identifier];
+  auto member_type = result->structs[class_identifier]->member_types[member_idx];
+  auto result_type = member_type.Ref();
   auto nxt_reg = make_shared<Register>(result_type);
-  int member_idx =
-      result->structs[class_identifier]->member_idx[member_identifier];
-  now_block->PushInstr(
-      RegisterAssignInstr(nxt_reg, GetElementPtrExpr(obj_ptr, 0, member_idx)));
+  now_block->PushInstr(RegisterAssignInstr(nxt_reg, GetElementPtrExpr(obj_ptr, 0, member_idx)));
   return Value(nxt_reg, true);
 }

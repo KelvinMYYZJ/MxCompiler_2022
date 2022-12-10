@@ -2,6 +2,7 @@
 #include <list>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "IR_type.h"
 #include "linked_hashmap.hpp"
@@ -36,7 +37,7 @@ struct Func {
 };
 struct Struct {
   string struct_identifier;
-  list<IRType> member_types;
+  vector<IRType> member_types;
   linked_hashmap<string, int> member_idx;
   void AddMemberVar(IRType type, string var_identifier);
 };
@@ -44,6 +45,7 @@ struct Struct {
 struct IRBuffer {
   shared_ptr<Func> init_func;
   linked_hashmap<string, shared_ptr<Struct>> structs;
+  linked_hashmap<string, shared_ptr<Register>> string_literals;
   list<GlobalVarDef> global_vars;
   list<shared_ptr<Func>> funcs;
 };
@@ -67,4 +69,4 @@ struct Value {
   Value(shared_ptr<Register> _reg, bool _is_left = false);
   IRType GetType();
 };
-} // namespace IR
+}  // namespace IR

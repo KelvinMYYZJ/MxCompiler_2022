@@ -1,4 +1,3 @@
-#pragma once
 #include "my_exception.h"
 
 MyException::MyException() : MyException("Unknown error") {}

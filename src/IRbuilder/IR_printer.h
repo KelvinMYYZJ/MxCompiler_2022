@@ -18,6 +18,8 @@ struct IRPrinter {
   string ToString(IRBuffer *IR_buffer);
   string ToString(Struct *struct_info);
   string ToString(GlobalVarDef var);
+  string ToString(string val, shared_ptr<Register> reg);
+  string ToLiteral(string val);
   string ToString(shared_ptr<Func> func);
   string ToString(shared_ptr<Register> reg);
   string ToString(shared_ptr<Block> block);
@@ -35,4 +37,5 @@ struct IRPrinter {
   string ToString(FuncCallExpr expr);
   string ToString(PhiExpr expr);
   string ToString(GetElementPtrExpr expr);
+  string ToString(BitcastExpr expr);
 };

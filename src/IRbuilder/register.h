@@ -13,7 +13,7 @@ struct Register {
 };
 struct GlobalRegister : public Register {
   string global_label;
-  GlobalRegister(const string &identifier, const ObjectType &_type,
-                 bool is_ptr);
+  GlobalRegister(const string &identifier, const ObjectType &_type, bool is_ptr);
+  GlobalRegister(const string &identifier, const IRType &_type);
 };
-} // namespace IR
+}  // namespace IR

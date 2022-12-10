@@ -23,8 +23,7 @@ struct ConditionBrInstr {
   Value condition;
   shared_ptr<IR::Block> true_target_block;
   shared_ptr<IR::Block> false_target_block;
-  ConditionBrInstr(Value _condition_reg,
-                   shared_ptr<IR::Block> _true_target_block,
+  ConditionBrInstr(Value _condition_reg, shared_ptr<IR::Block> _true_target_block,
                    shared_ptr<IR::Block> _false_target_block);
 };
 
@@ -57,8 +56,7 @@ struct FuncCallExpr {
   list<Value> arg_list;
   string identifier;
   IRType ret_type;
-  FuncCallExpr(const list<Value> &_arg_list, string _identifier,
-               IRType _ret_type);
+  FuncCallExpr(const list<Value> &_arg_list, string _identifier, IRType _ret_type);
 };
 
 struct PhiExpr {
@@ -106,4 +104,10 @@ struct GetElementPtrExpr {
   Value member_idx;
   GetElementPtrExpr(Value _ptr, Value _offset, Value _member_idx);
 };
-} // namespace IR
+
+struct BitcastExpr {
+  Value val;
+  IRType type;
+  BitcastExpr(Value _val, IRType _type);
+};
+}  // namespace IR
