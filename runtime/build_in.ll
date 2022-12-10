@@ -8,12 +8,36 @@
 
 declare  i8* @_Znam(i64)
 declare  i8* @_Znwm(i64)
-;%0 is the number of Byte
-define i8* @__Malloc(i32 %0){
+
+define i8* @__Malloc_array(i32 %len){
 block0:
-  %1 = sext i32 %0 to i64
-  %2 = call i8* @_Znam(i64 %1) 
-  ret i8* %2
+  %len_64 = sext i32 %len to i64
+  %size = mul nsw i64 %len_64, 16
+  %call = call i8* @_Znam(i64 %size) 
+  ret i8* %call
+}
+
+define i8* @__Malloc_int(i32 %len){
+block0:
+  %len_64 = sext i32 %len to i64
+  %size = mul nsw i64 %len_64, 4
+  %call = call i8* @_Znam(i64 %size) 
+  ret i8* %call
+}
+
+define i8* @__Malloc_bool(i32 %len){
+block0:
+  %len_64 = sext i32 %len to i64
+  %call = call i8* @_Znam(i64 %len_64) 
+  ret i8* %call
+}
+
+define i8* @__Malloc_ptr(i32 %len){
+block0:
+  %len_64 = sext i32 %len to i64
+  %size = mul nsw i64 %len_64, 8
+  %call = call i8* @_Znam(i64 %size) 
+  ret i8* %call
 }
 
 declare i32 @printf(i8*, ...) 

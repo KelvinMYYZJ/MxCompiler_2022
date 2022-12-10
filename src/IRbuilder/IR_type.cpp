@@ -13,6 +13,7 @@ IRType::IRType(const ObjectType &obj_type, bool is_ptr) : identifier(obj_type.ty
   if (obj_type.dim && obj_type.type_identifier != "_char") {
     // is array object
     identifier = "_array_" + to_string(obj_type.dim) + "_" + identifier;
+    ++dim;
     return;
   }
   if (!obj_type.IsBasicType() || obj_type.type_identifier == "string") {

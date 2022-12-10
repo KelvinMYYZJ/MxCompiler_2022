@@ -31,7 +31,10 @@ string IRPrinter::ToString(IRType IR_type) {
 }
 string IRPrinter::ToString(IRBuffer *IR_buffer) {
   string ret =
-      "declare i8* @__Malloc(i32)\n"
+      "declare i8* @__Malloc_array(i32)\n"
+      "declare i8* @__Malloc_int(i32)\n"
+      "declare i8* @__Malloc_bool(i32)\n"
+      "declare i8* @__Malloc_ptr(i32)\n"
       "declare void @print(%struct.string *)\n"
       "declare void @println(%struct.string *)\n"
       "declare void @printInt(i32)\n"
@@ -82,7 +85,7 @@ string IRPrinter::ToString(GlobalVarDef var) {
 string IRPrinter::DefaultValue(IRType type) {
   if (type.dim) return "null";
   if (type.identifier == "int" || type.identifier == "bool") return "0";
-  throw MyException("Unexcepted error in IR_type printing");
+  return "zeroinitializer";
 }
 
 string IRPrinter::ToString(string val, shared_ptr<Register> reg) {
@@ -340,7 +343,7 @@ string IRPrinter::ToString(GetElementPtrExpr expr) {
   string ret = "getelementptr inbounds " + ToString(expr.type);
   ret += ", " + ToString(expr.ptr);
   ret += ", " + ToString(expr.offset);
-  ret += ", " + ToString(expr.member_idx);
+  if (expr.have_member_idx) ret += ", " + ToString(expr.member_idx);
   return ret;
 }
 

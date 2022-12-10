@@ -7,6 +7,7 @@
 #include "IR.h"
 #include "gscope.h"
 #include "my_exception.h"
+#include "type.h"
 using namespace std;
 using namespace IR;
 struct IRBuilder {
@@ -23,8 +24,7 @@ struct IRBuilder {
   shared_ptr<Block> MakeBlock(bool push_now = true);
   shared_ptr<Struct> BuildStructInfo(shared_ptr<AST::ClassDefNode> now);
   shared_ptr<IRBuffer> BuildIR(shared_ptr<AST::ProgNode> now);
-  void PushInitStmt(shared_ptr<AST::VarDefNode> now, shared_ptr<Func> func,
-                    shared_ptr<Block> &now_init_block);
+  void PushInitStmt(shared_ptr<AST::VarDefNode> now, shared_ptr<Func> func, shared_ptr<Block> &now_init_block);
   void Visit(shared_ptr<AST::ProgNode> now);
   void Visit(shared_ptr<AST::ClassDefNode> now);
   void Visit(shared_ptr<AST::VarDefNode> now, bool is_global = false);
@@ -37,6 +37,8 @@ struct IRBuilder {
   void Visit(shared_ptr<AST::ReturnStmtNode> now);
   Value GetRightValue(Value val);
   Value NowThis();
+  void BuildArrayStruct(ObjectType type);
+  Value InitArray(ObjectType type, list<Value>::const_iterator cend_iter, list<Value>::const_iterator iter);
   Value Visit(shared_ptr<AST::ExpressionNode> now);
   Value Visit(shared_ptr<AST::AssignExprNode> now);
   Value Visit(shared_ptr<AST::LorExprNode> now);
@@ -56,8 +58,7 @@ struct IRBuilder {
   Value Visit(shared_ptr<AST::LiteralNode> now);
   list<Value> Visit(shared_ptr<AST::ArgListNode> now);
   // obj_ptr must be right value
-  Value VisitMemberVarible(Value obj_ptr, const string &class_identifier,
-                           const string &member_identifier);
+  Value VisitMemberVarible(Value obj_ptr, const string &class_identifier, const string &member_identifier);
   // shared_ptr<Func> BuildMemberFunc(shared_ptr<AST::FuncDefNode>now,
   //                                  const string &class_identifier);
 };

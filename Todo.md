@@ -3,7 +3,7 @@
 # IR
 - [x] treat && and || correctly (shortcut)
 - [x] function call
-- [ ] array
+- [x] array
 - [x] string
 - [x] build-in functions
 - [x] class object

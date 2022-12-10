@@ -102,7 +102,8 @@ struct GetElementPtrExpr {
   Value ptr;
   Value offset;
   Value member_idx;
-  GetElementPtrExpr(Value _ptr, Value _offset, Value _member_idx);
+  bool have_member_idx;
+  GetElementPtrExpr(Value _ptr, Value _offset, Value _member_idx, bool _have_member_idx = true);
 };
 
 struct BitcastExpr {

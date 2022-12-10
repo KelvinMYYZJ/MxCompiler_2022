@@ -6,6 +6,7 @@
 #include <string>
 
 #include "AST_nodes.h"
+#include "IR.h"
 #include "IR_type.h"
 #include "instr.h"
 #include "my_any.hpp"
@@ -160,6 +161,7 @@ void IRBuilder::Visit(shared_ptr<AST::FuncDefNode> now) {
 }
 
 void IRBuilder::Visit(shared_ptr<AST::VarDefNode> now, bool is_global) {
+  BuildArrayStruct(now->type);
   if (is_global) {
     auto type = now->type;
     IRType ir_type = type;
@@ -186,6 +188,7 @@ void IRBuilder::Visit(shared_ptr<AST::VarDefNode> now, bool is_global) {
 
 void IRBuilder::Visit(shared_ptr<AST::ArgListDefNode> now) {
   for (auto arg_def : now->args) {
+    BuildArrayStruct(arg_def.type);
     auto var_identifier = arg_def.arg_identifier;
     auto now_func_arg = FuncArg(arg_def.type);
     now_func->args.push_back(now_func_arg);
@@ -336,6 +339,22 @@ Value IRBuilder::GetRightValue(Value val) {
   now_block->PushInstr(RegisterAssignInstr(now_right_val, LoadExpr(val.reg)));
   return Value(now_right_val, false);
 }
+
+void IRBuilder::BuildArrayStruct(ObjectType type) {
+  auto identifier = IRType(type).identifier;
+  if (!type.dim || result->structs.count(identifier)) {
+    return;
+  }
+  --type.dim;
+  BuildArrayStruct(type);
+  auto struct_info = make_shared<Struct>();
+  result->structs[identifier] = struct_info;
+  struct_info->struct_identifier = identifier;
+  struct_info->AddMemberVar(IRType(type, true), "_val");
+  struct_info->AddMemberVar(kIntIRType, "_size");
+  return;
+}
+
 Value IRBuilder::Visit(shared_ptr<AST::ExpressionNode> now) {
   // return Value(make_shared<Register>(kIntIRType));
   return GetRightValue(Visit(now->assign_expr));
@@ -345,7 +364,7 @@ Value IRBuilder::Visit(shared_ptr<AST::AssignExprNode> now) {
   // return Value(now->value_type.object_type, make_shared<Register>());
   if (!now->have_left_expr) return Visit(now->lor_expr);
   Value left = Visit(now->left_expr);
-  Value val = Visit(now->lor_expr);
+  Value val = GetRightValue(Visit(now->lor_expr));
   MyAssert(left.is_left, MyException("Assigning to a right value in ir"));
   if (val.is_null) {
     val.type = left.type.Deref();
@@ -355,7 +374,6 @@ Value IRBuilder::Visit(shared_ptr<AST::AssignExprNode> now) {
 }
 
 Value IRBuilder::NowThis() { return Value(now_func->args.front().reg, false); }
-
 Value IRBuilder::Visit(shared_ptr<AST::LorExprNode> now) {
   if (now->land_exprs.size() == 1) {
     return Visit(now->land_exprs.front());
@@ -749,6 +767,12 @@ Value IRBuilder::Visit(shared_ptr<AST::PostfixExprNode> now) {
       ret = result;
     } else if (AnyIs<Member>(op)) {
       ret = GetRightValue(ret);
+      if (ret.type.identifier.find_first_of("_array") != string::npos) {
+        ++op_iter;
+        auto ret_size_ptr = VisitMemberVarible(ret, ret.type.identifier, "_size");
+        ret = GetRightValue(ret_size_ptr);
+        continue;
+      }
       auto member_identifier = AnyCast<Member>(op).member_identifier;
       auto class_identifier = ret.type.identifier;
       auto member_type = now->scope->GetClassMember(class_identifier, member_identifier);
@@ -761,6 +785,13 @@ Value IRBuilder::Visit(shared_ptr<AST::PostfixExprNode> now) {
       } else {
         ret = VisitMemberVarible(ret, class_identifier, member_identifier);
       }
+    } else if (auto array_idx = AnyCastPtr<AST::ArrayIndexNode>(op)) {
+      auto idx = Visit(array_idx->idx_expr);
+      ret = GetRightValue(ret);
+      Value ret_val = GetRightValue(VisitMemberVarible(ret, ret.type.identifier, "_val"));
+      ret = ret_val.type;
+      ret.is_left = true;
+      now_block->PushInstr(RegisterAssignInstr(ret.reg, GetElementPtrExpr(ret_val, idx, 0, false)));
     }
   }
   return ret;
@@ -793,6 +824,81 @@ Value IRBuilder::Visit(shared_ptr<AST::PrimaryExprNode> now) {
   }
   return 0;
 }
+Value IRBuilder::InitArray(ObjectType type, list<Value>::const_iterator cend_iter, list<Value>::const_iterator iter) {
+  Value ret = IRType(type);
+  --type.dim;
+  auto now_len = *iter;
+  ++iter;
+  now_block->PushInstr(RegisterAssignInstr(ret.reg, AllocaExpr(ret.type.Deref())));
+  auto ret_val_ptr = VisitMemberVarible(ret, ret.type.identifier, "_val");
+  Value ret_val = kCharPtrIRType;
+  string func_identifier;
+  if (type.dim)
+    func_identifier = "__Malloc_array";
+  else {
+    if (type.type_identifier == "int") {
+      func_identifier = "__Malloc_int";
+    } else if (type.type_identifier == "bool") {
+      func_identifier = "__Malloc_bool";
+    } else
+      func_identifier = "__Malloc_ptr";
+  }
+  now_block->PushInstr(RegisterAssignInstr(ret_val.reg, FuncCallExpr({now_len}, func_identifier, kCharPtrIRType)));
+  auto real_ret_val = Value(ret_val_ptr.type.Deref());
+  now_block->PushInstr(RegisterAssignInstr(real_ret_val.reg, BitcastExpr(ret_val, real_ret_val.type)));
+  now_block->PushInstr(StoreInstr(ret_val_ptr, real_ret_val));
+  auto ret_size_ptr = VisitMemberVarible(ret, ret.type.identifier, "_size");
+  now_block->PushInstr(StoreInstr(ret_size_ptr, now_len));
+
+  if (iter == cend_iter) return ret;
+  // build the for part which is like this:
+  // int idx = 0;
+  // for (;idx < now_len;++idx){
+  //   ret.val[idx] = new_obj;
+  // }
+  Value idx(kIntIRType.Ref());
+  idx.is_left = true;
+  now_block->PushInstr(RegisterAssignInstr(idx.reg, AllocaExpr(kIntIRType)));
+  now_block->PushInstr(StoreInstr(idx, 0));
+  auto condition_block = MakeBlock();
+  auto step_block = MakeBlock();
+  auto body_block = MakeBlock();
+  auto next_block = MakeBlock(false);
+  now_block->PushInstr(BrInstr(condition_block));
+  {
+    // condition block
+    Value idx_val = kIntIRType;
+    condition_block->PushInstr(RegisterAssignInstr(idx_val.reg, LoadExpr(idx.reg)));
+    Value condition_result = kBoolIRType;
+    condition_block->PushInstr(
+        RegisterAssignInstr(condition_result.reg, BinaryExpr(idx_val, now_len, BinaryExpr::kLess, kIntIRType)));
+    condition_block->PushInstr(ConditionBrInstr(condition_result, body_block, next_block));
+  }
+  {  // step block
+    Value idx_val = kIntIRType;
+    step_block->PushInstr(RegisterAssignInstr(idx_val.reg, LoadExpr(idx.reg)));
+    Value new_idx_val = kIntIRType;
+    step_block->PushInstr(RegisterAssignInstr(new_idx_val.reg, BinaryExpr(idx_val, 1, BinaryExpr::kPlus, kIntIRType)));
+    step_block->PushInstr(StoreInstr(idx, new_idx_val));
+    step_block->PushInstr(BrInstr(condition_block));
+  }
+  {  // body block
+    Value idx_val = kIntIRType;
+    body_block->PushInstr(RegisterAssignInstr(idx_val.reg, LoadExpr(idx.reg)));
+    Value now_obj_ptr = ret_val.type;
+    body_block->PushInstr(RegisterAssignInstr(now_obj_ptr.reg, GetElementPtrExpr(ret_val, idx_val, 0, false)));
+    Value now_obj = ret_val.type.Deref();
+    body_block->PushInstr(RegisterAssignInstr(now_obj.reg, AllocaExpr(now_obj.type.Deref())));
+    body_block->PushInstr(StoreInstr(now_obj_ptr, now_obj));
+    now_block = body_block;
+    Value now_obj_val = InitArray(type, cend_iter, iter);
+    now_block->PushInstr(StoreInstr(now_obj, now_obj_val));
+    now_block->PushInstr(BrInstr(condition_block));
+  }
+  now_block = next_block;
+  now_func->blocks.push_back(next_block);
+  return ret;
+}
 
 Value IRBuilder::Visit(shared_ptr<AST::NewExprNode> now) {
   if (!now->is_array) {
@@ -803,7 +909,12 @@ Value IRBuilder::Visit(shared_ptr<AST::NewExprNode> now) {
         RegisterAssignInstr(nullptr, FuncCallExpr({ret}, now->type.type_identifier + "_Init_", kVoidIRType)));
     return ret;
   }
-  return 0;
+  BuildArrayStruct(now->type);
+  list<Value> idxs;
+  for (auto idx : now->array_idxs) {
+    idxs.push_back(Visit(idx->idx_expr));
+  }
+  return InitArray(now->type, idxs.cend(), idxs.cbegin());
 }
 
 Value IRBuilder::Visit(shared_ptr<AST::LiteralNode> now) {
