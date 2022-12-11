@@ -222,6 +222,10 @@ void IRBuilder::Visit(shared_ptr<AST::StmtBlockNode> now) {
       Visit(stmt_block);
     } else if (auto expr_stmt = AnyCastPtr<AST::ExprStmtNode>(stmt)) {
       Visit(expr_stmt->expr);
+    } else if (auto continue_stmt = AnyCastPtr<AST::ContinueStmtNode>(stmt)) {
+      Visit(continue_stmt);
+    } else if (auto break_stmt = AnyCastPtr<AST::BreakStmtNode>(stmt)) {
+      Visit(break_stmt);
     }
     if (now_block->closed) return;
   }
@@ -333,6 +337,11 @@ void IRBuilder::Visit(shared_ptr<AST::ReturnStmtNode> now) {
   auto ret = Visit(now->ret_expr);
   now_block->PushInstr(ReturnInstr(ret));
 }
+
+void IRBuilder::Visit(shared_ptr<AST::ContinueStmtNode> now) { now_block->PushInstr(BrInstr(continue_target.top())); }
+
+void IRBuilder::Visit(shared_ptr<AST::BreakStmtNode> now) { now_block->PushInstr(BrInstr(break_target.top())); }
+
 Value IRBuilder::GetRightValue(Value val) {
   if (!val.is_left) return val;
   auto now_right_val = make_shared<Register>(val.type.Deref());

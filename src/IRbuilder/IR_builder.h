@@ -35,6 +35,8 @@ struct IRBuilder {
   void Visit(shared_ptr<AST::WhileStmtNode> now);
   void Visit(shared_ptr<AST::ForStmtNode> now);
   void Visit(shared_ptr<AST::ReturnStmtNode> now);
+  void Visit(shared_ptr<AST::BreakStmtNode> now);
+  void Visit(shared_ptr<AST::ContinueStmtNode> now);
   Value GetRightValue(Value val);
   Value NowThis();
   void BuildArrayStruct(ObjectType type);
