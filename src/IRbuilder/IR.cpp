@@ -1,5 +1,6 @@
 #include "IR.h"
 
+#include <cstddef>
 #include <memory>
 
 #include "instr.h"
@@ -13,6 +14,12 @@ void Struct::AddMemberVar(IRType type, string var_identifier) {
   int now_idx = member_types.size();
   member_idx[var_identifier] = now_idx;
   member_types.push_back(type);
+  if (type.dim)
+    size += 8;  // now ptr is i64
+  else if (type.identifier == "bool" || type.identifier == "_char")
+    size += 1;
+  else  // i32
+    size += 4;
 }
 
 void Block::PushInstr(any instr) {

@@ -838,7 +838,10 @@ Value IRBuilder::InitArray(ObjectType type, list<Value>::const_iterator cend_ite
   --type.dim;
   auto now_len = *iter;
   ++iter;
-  now_block->PushInstr(RegisterAssignInstr(ret.reg, AllocaExpr(ret.type.Deref())));
+  // now_block->PushInstr(RegisterAssignInstr(ret.reg, AllocaExpr(ret.type.Deref())));
+  Value tmp_malloc = kCharPtrIRType;
+  now_block->PushInstr(RegisterAssignInstr(tmp_malloc.reg, FuncCallExpr({1}, "__Malloc_ptr", kCharPtrIRType)));
+  now_block->PushInstr(RegisterAssignInstr(ret.reg, BitcastExpr(tmp_malloc, ret.type)));
   auto ret_val_ptr = VisitMemberVarible(ret, ret.type.identifier, "_val");
   Value ret_val = kCharPtrIRType;
   string func_identifier;
@@ -912,8 +915,12 @@ Value IRBuilder::InitArray(ObjectType type, list<Value>::const_iterator cend_ite
 Value IRBuilder::Visit(shared_ptr<AST::NewExprNode> now) {
   if (!now->is_array) {
     // new an object
-    auto ret = make_shared<Register>(now->type);
-    now_block->PushInstr(RegisterAssignInstr(ret, AllocaExpr(ret->type.Deref())));
+    Value ret = IRType(now->type);
+    int obj_size = result->structs[now->type.type_identifier]->size;
+    Value tmp_malloc = kCharPtrIRType;
+    now_block->PushInstr(RegisterAssignInstr(tmp_malloc.reg, FuncCallExpr({obj_size}, "__Malloc_ptr", kCharPtrIRType)));
+    // now_block->PushInstr(RegisterAssignInstr(ret, AllocaExpr(ret->type.Deref())));
+    now_block->PushInstr(RegisterAssignInstr(ret.reg, BitcastExpr(tmp_malloc, ret.type)));
     now_block->PushInstr(
         RegisterAssignInstr(nullptr, FuncCallExpr({ret}, now->type.type_identifier + "_Init_", kVoidIRType)));
     return ret;
@@ -947,17 +954,16 @@ Value IRBuilder::Visit(shared_ptr<AST::LiteralNode> now) {
       result->string_literals[val] = make_shared<GlobalRegister>(new_reg_label, type);
     }
     auto literal_reg = result->string_literals[val];
-    auto ret = make_shared<Register>(kStringIRType);
-    now_block->PushInstr(RegisterAssignInstr(ret, AllocaExpr(kStringIRType.Deref())));
-    // auto val_ptr = make_shared<Register>(kCharPtrIRType.Ref());
-    // now_block->PushInstr(RegisterAssignInstr(val_ptr, GetElementPtrExpr(ret, 0, 0)));
+    Value ret = kStringIRType;
+    Value tmp_malloc = kCharPtrIRType;
+    now_block->PushInstr(RegisterAssignInstr(tmp_malloc.reg, FuncCallExpr({16}, "__Malloc_ptr", kCharPtrIRType)));
+    now_block->PushInstr(RegisterAssignInstr(ret.reg, BitcastExpr(tmp_malloc, ret.type)));
+    // now_block->PushInstr(RegisterAssignInstr(ret, AllocaExpr(kStringIRType.Deref())));
     auto val_ptr = VisitMemberVarible(ret, "string", "_val");
     auto literal_ptr = make_shared<Register>(kCharPtrIRType);
     now_block->PushInstr(RegisterAssignInstr(literal_ptr, BitcastExpr(literal_reg, kCharPtrIRType)));
     now_block->PushInstr(StoreInstr(val_ptr, literal_ptr));
     auto size_ptr = VisitMemberVarible(ret, "string", "_size");
-    // auto size_ptr = make_shared<Register>(kIntType, true);
-    // now_block->PushInstr(RegisterAssignInstr(size_ptr, GetElementPtrExpr(ret, 0, 1)));
     now_block->PushInstr(StoreInstr(size_ptr, int(val.length())));
     return ret;
   }

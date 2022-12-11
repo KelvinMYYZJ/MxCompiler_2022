@@ -8,6 +8,7 @@
 
 declare  i8* @_Znam(i64)
 declare  i8* @_Znwm(i64)
+declare  i8* @malloc(i64)
 
 define i8* @__Malloc_array(i32 %len){
 block0:

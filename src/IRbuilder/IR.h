@@ -39,6 +39,8 @@ struct Struct {
   string struct_identifier;
   vector<IRType> member_types;
   linked_hashmap<string, int> member_idx;
+  // number of Byte of the struct
+  int size;
   void AddMemberVar(IRType type, string var_identifier);
 };
 
