@@ -789,7 +789,7 @@ Value IRBuilder::Visit(shared_ptr<AST::PostfixExprNode> now) {
       ret = result;
     } else if (AnyIs<Member>(op)) {
       ret = GetRightValue(ret);
-      if (ret.type.identifier.find_first_of("_array") != string::npos) {
+      if (ret.type.identifier.find("_array") != string::npos) {
         ++op_iter;
         auto ret_size_ptr = VisitMemberVarible(ret, ret.type.identifier, "_size");
         ret = GetRightValue(ret_size_ptr);
