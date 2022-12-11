@@ -835,9 +835,16 @@ Value IRBuilder::Visit(shared_ptr<AST::PrimaryExprNode> now) {
     Value ret = 0;
     auto identifier = AnyCast<string>(now->expr);
     if (now->is_func) {
-      ret.func.identifier = identifier;
-      ret.func.is_member = false;
-      ret.func.ret_type = IRType(now->value_type.func_type.ret_type, false);
+      if (now_class_node && now->scope->GetClassMember(now_class_node->class_identifier, identifier).have_func_type) {
+        ret = NowThis();
+        ret.func.identifier = now_class_node->class_identifier + "_" + identifier;
+        ret.func.is_member = true;
+        ret.func.ret_type = IRType(now->value_type.func_type.ret_type, false);
+      } else {
+        ret.func.identifier = identifier;
+        ret.func.is_member = false;
+        ret.func.ret_type = IRType(now->value_type.func_type.ret_type, false);
+      }
     } else {
       if (now_class_node && !now->value_type.var_info->reg) {
         // actually [id] refers to this.[id]
