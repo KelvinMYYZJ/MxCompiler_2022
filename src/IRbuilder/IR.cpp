@@ -30,8 +30,8 @@ void Block::PushInstr(any instr) {
 Func::Func() { blocks.push_back(make_shared<Block>()); }
 
 Value::Value(IRType _type) : type(_type), reg(make_shared<Register>(_type)), is_left(false) {}
-Value::Value(int _value, IRType _type) : type(_type), value(_value), is_left(false) {}
-Value::Value(bool _value, IRType _type) : type(_type), value(_value), is_left(false) {}
+Value::Value(int _value, IRType _type) : type(_type), value(_value), is_left(false), is_null(false) {}
+Value::Value(bool _value, IRType _type) : type(_type), value(_value), is_left(false), is_null(false) {}
 Value::Value(shared_ptr<Register> _reg, bool _is_left) : type(_reg->type), reg(_reg), is_left(_is_left) {}
 IRType Value::GetType() { return type; }
 }  // namespace IR

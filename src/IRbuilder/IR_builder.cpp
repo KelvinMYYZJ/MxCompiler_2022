@@ -348,6 +348,9 @@ void IRBuilder::Visit(shared_ptr<AST::ReturnStmtNode> now) {
     return;
   }
   auto ret = Visit(now->ret_expr);
+  if (ret.is_null) {
+    ret.type = now_func->ret_type;
+  }
   now_block->PushInstr(ReturnInstr(ret));
 }
 
@@ -957,6 +960,7 @@ Value IRBuilder::Visit(shared_ptr<AST::LiteralNode> now) {
   if (now->type == kNullType) {
     Value ret(0);
     ret.is_null = true;
+    return ret;
   }
   if (now->type == kStringType) {
     auto val = AnyCast<string>(now->value);

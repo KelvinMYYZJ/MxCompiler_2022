@@ -191,7 +191,7 @@ string IRPrinter::ToString(Value value, bool show_type) {
   string type = ToString(value.type);
   if (value.reg) {
     val = ToString(value.reg);
-  } else if (value.type.dim && value.value == 0) {
+  } else if ((value.type.dim && value.value == 0) || value.is_null) {
     val = "null";
   } else {
     val = to_string(value.value);
