@@ -1,10 +1,4 @@
 %struct.string = type { i8*, i32}
-%"class.std::ios_base::Init" = type { i8 }
-%struct._IO_FILE = type { i32, i8*, i8*, i8*, i8*, i8*, i8*, i8*, i8*, i8*, i8*, i8*, %struct._IO_marker*, %struct._IO_FILE*, i32, i32, i64, i16, i8, [1 x i8], i8*, i64, %struct._IO_codecvt*, %struct._IO_wide_data*, %struct._IO_FILE*, i8*, i64, i32, [20 x i8] }
-%struct._IO_marker = type opaque
-%struct._IO_codecvt = type opaque
-%struct._IO_wide_data = type opaque
-
 
 declare  i8* @_Znam(i64)
 declare  i8* @_Znwm(i64)
@@ -107,35 +101,31 @@ define %struct.string* @toString(i32 %0) {
   ret %struct.string* %19
 }
 
-@stdin = external global %struct._IO_FILE*
-
-define %struct.string* @getString()  {
-  %1 = alloca %struct.string*
-  %2 = alloca i8*
-  %3 = call i8* @_Znwm(i64 16) 
-  %4 = bitcast i8* %3 to %struct.string*
-  %5 = bitcast %struct.string* %4 to i8*
-  store %struct.string* %4, %struct.string** %1
-  %6 = call i8* @_Znam(i64 256) 
-  store i8* %6, i8** %2
-  %7 = load i8*, i8** %2
-  %8 = load %struct._IO_FILE*, %struct._IO_FILE** @stdin
-  %9 = call i8* @fgets(i8* %7, i32 255, %struct._IO_FILE* %8)
-  %10 = load i8*, i8** %2
-  %11 = load %struct.string*, %struct.string** %1
-  %12 = getelementptr inbounds %struct.string, %struct.string* %11, i32 0, i32 0
-  store i8* %10, i8** %12
-  %13 = load i8*, i8** %2
-  %14 = call i64 @strlen(i8* %13) 
-  %15 = trunc i64 %14 to i32
-  %16 = load %struct.string*, %struct.string** %1
-  %17 = getelementptr inbounds %struct.string, %struct.string* %16, i32 0, i32 1
-  store i32 %15, i32* %17
-  %18 = load %struct.string*, %struct.string** %1
-  ret %struct.string* %18
+define %struct.string* @getString() {
+entry:
+  %ret = alloca %struct.string*, align 8
+  %call = call noalias nonnull i8* @_Znwm(i64 16) #8
+  %0 = bitcast i8* %call to %struct.string*
+  store %struct.string* %0, %struct.string** %ret, align 8
+  %call1 = call noalias nonnull i8* @_Znam(i64 256) #8
+  %1 = load %struct.string*, %struct.string** %ret, align 8
+  %val = getelementptr inbounds %struct.string, %struct.string* %1, i32 0, i32 0
+  store i8* %call1, i8** %val, align 8
+  %2 = load %struct.string*, %struct.string** %ret, align 8
+  %val2 = getelementptr inbounds %struct.string, %struct.string* %2, i32 0, i32 0
+  %3 = load i8*, i8** %val2, align 8
+  %call3 = call i32 (i8*, ...) @__isoc99_scanf(i8* getelementptr inbounds ([3 x i8], [3 x i8]* @.str__print_format, i64 0, i64 0), i8* %3)
+  %4 = load %struct.string*, %struct.string** %ret, align 8
+  %val4 = getelementptr inbounds %struct.string, %struct.string* %4, i32 0, i32 0
+  %5 = load i8*, i8** %val4, align 8
+  %call5 = call i64 @strlen(i8* %5) #9
+  %conv = trunc i64 %call5 to i32
+  %6 = load %struct.string*, %struct.string** %ret, align 8
+  %size = getelementptr inbounds %struct.string, %struct.string* %6, i32 0, i32 1
+  store i32 %conv, i32* %size, align 8
+  %7 = load %struct.string*, %struct.string** %ret, align 8
+  ret %struct.string* %7
 }
-declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) 
-declare i8* @fgets(i8*, i32, %struct._IO_FILE*) 
 
 declare i32 @__isoc99_scanf(i8*, ...)
 define i32 @getInt(){
@@ -145,7 +135,7 @@ define i32 @getInt(){
   ret i32 %3
 }
 
-define i32 @string_length(%struct.string* %this){
+define i32 @string.length(%struct.string* %this){
 block0:
   %size_ptr = getelementptr inbounds %struct.string, %struct.string* %this, i32 0, i32 1
   %size = load i32, i32* %size_ptr
@@ -153,7 +143,7 @@ block0:
 }
 
 declare i32 @__isoc99_sscanf(i8*, i8*, ...)
-define i32 @string_parseInt(%struct.string* %this){
+define i32 @string.parseInt(%struct.string* %this){
   %ret_ptr = alloca i32
   %val_ptr = getelementptr inbounds %struct.string, %struct.string* %this, i32 0, i32 0
   %val = load i8*, i8** %val_ptr
@@ -162,7 +152,7 @@ define i32 @string_parseInt(%struct.string* %this){
   ret i32 %ret
 }
 
-define i32 @string_ord(%struct.string* %this, i32 %pos){
+define i32 @string.ord(%struct.string* %this, i32 %pos){
   %val_ptr = getelementptr inbounds %struct.string, %struct.string* %this, i32 0, i32 0
   %val = load i8*, i8** %val_ptr
   %ch_ptr = getelementptr inbounds i8, i8* %val, i32 %pos
@@ -173,7 +163,7 @@ define i32 @string_ord(%struct.string* %this, i32 %pos){
 
 declare i8* @strncpy(i8*, i8*, i64)
 
-define %struct.string* @string_substring(%struct.string* %this, i32 %left, i32 %right){
+define %struct.string* @string.substring(%struct.string* %this, i32 %left, i32 %right){
   %val_ptr = getelementptr inbounds %struct.string, %struct.string* %this, i32 0, i32 0
   %val = load i8*, i8** %val_ptr
   %st_pos = getelementptr inbounds i8, i8* %val, i32 %left
@@ -194,7 +184,7 @@ define %struct.string* @string_substring(%struct.string* %this, i32 %left, i32 %
 
 declare i32 @strcmp(i8*, i8*)
 
-define i1 @_string_lt(%struct.string* %lhs, %struct.string* %rhs){
+define i1 @_string.lt(%struct.string* %lhs, %struct.string* %rhs){
   %lhs_val_ptr = getelementptr inbounds %struct.string, %struct.string* %lhs, i32 0, i32 0
   %lhs_val = load i8*, i8** %lhs_val_ptr
   %rhs_val_ptr = getelementptr inbounds %struct.string, %struct.string* %rhs, i32 0, i32 0
@@ -204,7 +194,7 @@ define i1 @_string_lt(%struct.string* %lhs, %struct.string* %rhs){
   ret i1 %ret
 }
 
-define i1 @_string_le(%struct.string* %lhs, %struct.string* %rhs){
+define i1 @_string.le(%struct.string* %lhs, %struct.string* %rhs){
   %lhs_val_ptr = getelementptr inbounds %struct.string, %struct.string* %lhs, i32 0, i32 0
   %lhs_val = load i8*, i8** %lhs_val_ptr
   %rhs_val_ptr = getelementptr inbounds %struct.string, %struct.string* %rhs, i32 0, i32 0
@@ -214,7 +204,7 @@ define i1 @_string_le(%struct.string* %lhs, %struct.string* %rhs){
   ret i1 %ret
 }
 
-define i1 @_string_eq(%struct.string* %lhs, %struct.string* %rhs){
+define i1 @_string.eq(%struct.string* %lhs, %struct.string* %rhs){
   %lhs_val_ptr = getelementptr inbounds %struct.string, %struct.string* %lhs, i32 0, i32 0
   %lhs_val = load i8*, i8** %lhs_val_ptr
   %rhs_val_ptr = getelementptr inbounds %struct.string, %struct.string* %rhs, i32 0, i32 0
@@ -224,7 +214,7 @@ define i1 @_string_eq(%struct.string* %lhs, %struct.string* %rhs){
   ret i1 %ret
 }
 
-define i1 @_string_neq(%struct.string* %lhs, %struct.string* %rhs){
+define i1 @_string.neq(%struct.string* %lhs, %struct.string* %rhs){
   %lhs_val_ptr = getelementptr inbounds %struct.string, %struct.string* %lhs, i32 0, i32 0
   %lhs_val = load i8*, i8** %lhs_val_ptr
   %rhs_val_ptr = getelementptr inbounds %struct.string, %struct.string* %rhs, i32 0, i32 0

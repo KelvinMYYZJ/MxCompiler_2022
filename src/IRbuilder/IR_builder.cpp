@@ -38,6 +38,7 @@ shared_ptr<Struct> IRBuilder::BuildStructInfo(shared_ptr<AST::ClassDefNode> now)
   for (auto var : (*class_info.member_vars)) {
     string var_identifier = var.first;
     IRType ir_type = var.second;
+    BuildArrayStruct(var.second);
     struct_info->AddMemberVar(ir_type, var_identifier);
     // now->scope->GiveVarReg(var_identifier);
   }
@@ -57,6 +58,9 @@ void IRBuilder::PushInitStmt(shared_ptr<AST::VarDefNode> now, shared_ptr<Func> f
       if (now_class_node && !reg) {
         // actually [id] refers to this.[id]
         reg = VisitMemberVarible(NowThis(), now_class_node->class_identifier, var_def.var_identifier).reg;
+      }
+      if (expr_value.is_null) {
+        expr_value.type = reg->type.Deref();
       }
       now_block->PushInstr(StoreInstr(reg, expr_value));
     }
@@ -140,7 +144,7 @@ void IRBuilder::Visit(shared_ptr<AST::FuncDefNode> now) {
   func->ret_type = now->type;
   string func_identifier = now->func_identifier;
   if (now_class_node) {
-    func_identifier = now_class_node->class_identifier + "_" + func_identifier;
+    func_identifier = now_class_node->class_identifier + "." + func_identifier;
     func->args.push_back(FuncArg(ObjectType(now_class_node->class_identifier)));
     NowThis() = func->args.front().reg;
   }
@@ -534,10 +538,10 @@ Value IRBuilder::Visit(shared_ptr<AST::EqualityExprNode> now) {
       string func_identifier;
       switch (op) {
         case IR::BinaryExpr::kEqual:
-          func_identifier = "_string_eq";
+          func_identifier = "_string.eq";
           break;
         case IR::BinaryExpr::kNotequal:
-          func_identifier = "_string_neq";
+          func_identifier = "_string.neq";
           break;
       }
       now_block->PushInstr(RegisterAssignInstr(new_reg.reg, FuncCallExpr(arg_list, func_identifier, kBoolIRType)));
@@ -582,22 +586,22 @@ Value IRBuilder::Visit(shared_ptr<AST::RelationExprNode> now) {
       string func_identifier;
       switch (op) {
         case IR::BinaryExpr::kLess:
-          func_identifier = "_string_lt";
+          func_identifier = "_string.lt";
           arg_list.push_back(ret);
           arg_list.push_back(now_val);
           break;
         case IR::BinaryExpr::kLessEqual:
-          func_identifier = "_string_le";
+          func_identifier = "_string.le";
           arg_list.push_back(ret);
           arg_list.push_back(now_val);
           break;
         case IR::BinaryExpr::kGreater:
-          func_identifier = "_string_lt";
+          func_identifier = "_string.lt";
           arg_list.push_back(now_val);
           arg_list.push_back(ret);
           break;
         case IR::BinaryExpr::kGreaterEqual:
-          func_identifier = "_string_le";
+          func_identifier = "_string.le";
           arg_list.push_back(now_val);
           arg_list.push_back(ret);
           break;
@@ -804,7 +808,7 @@ Value IRBuilder::Visit(shared_ptr<AST::PostfixExprNode> now) {
       auto nxt_iter = op_iter;
       ++nxt_iter;
       if (nxt_iter != now->suffix_ops.end() && AnyCastPtr<AST::ArgListNode>(*nxt_iter)) {
-        ret.func.identifier = class_identifier + "_" + member_identifier;
+        ret.func.identifier = class_identifier + "." + member_identifier;
         ret.func.is_member = true;
         ret.func.ret_type = IRType(member_type.func_type.ret_type, false);
       } else {
@@ -837,7 +841,7 @@ Value IRBuilder::Visit(shared_ptr<AST::PrimaryExprNode> now) {
     if (now->is_func) {
       if (now_class_node && now->scope->GetClassMember(now_class_node->class_identifier, identifier).have_func_type) {
         ret = NowThis();
-        ret.func.identifier = now_class_node->class_identifier + "_" + identifier;
+        ret.func.identifier = now_class_node->class_identifier + "." + identifier;
         ret.func.is_member = true;
         ret.func.ret_type = IRType(now->value_type.func_type.ret_type, false);
       } else {
@@ -866,7 +870,7 @@ Value IRBuilder::InitArray(ObjectType type, list<Value>::const_iterator cend_ite
   now_block->PushInstr(RegisterAssignInstr(tmp_malloc.reg, FuncCallExpr({1}, "__Malloc_ptr", kCharPtrIRType)));
   now_block->PushInstr(RegisterAssignInstr(ret.reg, BitcastExpr(tmp_malloc, ret.type)));
   auto ret_val_ptr = VisitMemberVarible(ret, ret.type.identifier, "_val");
-  Value ret_val = kCharPtrIRType;
+  Value malloc_ret_val = kCharPtrIRType;
   string func_identifier;
   if (type.dim)
     func_identifier = "__Malloc_array";
@@ -878,10 +882,11 @@ Value IRBuilder::InitArray(ObjectType type, list<Value>::const_iterator cend_ite
     } else
       func_identifier = "__Malloc_ptr";
   }
-  now_block->PushInstr(RegisterAssignInstr(ret_val.reg, FuncCallExpr({now_len}, func_identifier, kCharPtrIRType)));
-  auto real_ret_val = Value(ret_val_ptr.type.Deref());
-  now_block->PushInstr(RegisterAssignInstr(real_ret_val.reg, BitcastExpr(ret_val, real_ret_val.type)));
-  now_block->PushInstr(StoreInstr(ret_val_ptr, real_ret_val));
+  now_block->PushInstr(
+      RegisterAssignInstr(malloc_ret_val.reg, FuncCallExpr({now_len}, func_identifier, kCharPtrIRType)));
+  auto ret_val = Value(ret_val_ptr.type.Deref());
+  now_block->PushInstr(RegisterAssignInstr(ret_val.reg, BitcastExpr(malloc_ret_val, ret_val.type)));
+  now_block->PushInstr(StoreInstr(ret_val_ptr, ret_val));
   auto ret_size_ptr = VisitMemberVarible(ret, ret.type.identifier, "_size");
   now_block->PushInstr(StoreInstr(ret_size_ptr, now_len));
 
@@ -896,9 +901,13 @@ Value IRBuilder::InitArray(ObjectType type, list<Value>::const_iterator cend_ite
   now_block->PushInstr(RegisterAssignInstr(idx.reg, AllocaExpr(kIntIRType)));
   now_block->PushInstr(StoreInstr(idx, 0));
   auto condition_block = MakeBlock();
+  condition_block->comment = "initarray_condition";
   auto step_block = MakeBlock();
+  step_block->comment = "initarray_step";
   auto body_block = MakeBlock();
+  body_block->comment = "initarray_body";
   auto next_block = MakeBlock(false);
+  next_block->comment = "initarray_next";
   now_block->PushInstr(BrInstr(condition_block));
   {
     // condition block
@@ -922,13 +931,13 @@ Value IRBuilder::InitArray(ObjectType type, list<Value>::const_iterator cend_ite
     body_block->PushInstr(RegisterAssignInstr(idx_val.reg, LoadExpr(idx.reg)));
     Value now_obj_ptr = ret_val.type;
     body_block->PushInstr(RegisterAssignInstr(now_obj_ptr.reg, GetElementPtrExpr(ret_val, idx_val, 0, false)));
-    Value now_obj = ret_val.type.Deref();
-    body_block->PushInstr(RegisterAssignInstr(now_obj.reg, AllocaExpr(now_obj.type.Deref())));
-    body_block->PushInstr(StoreInstr(now_obj_ptr, now_obj));
+    // Value now_obj = ret_val.type.Deref();
+    // body_block->PushInstr(RegisterAssignInstr(now_obj.reg, AllocaExpr(now_obj.type.Deref())));
+    // body_block->PushInstr(StoreInstr(now_obj_ptr, now_obj));
     now_block = body_block;
     Value now_obj_val = InitArray(type, cend_iter, iter);
-    now_block->PushInstr(StoreInstr(now_obj, now_obj_val));
-    now_block->PushInstr(BrInstr(condition_block));
+    now_block->PushInstr(StoreInstr(now_obj_ptr, now_obj_val));
+    now_block->PushInstr(BrInstr(step_block));
   }
   now_block = next_block;
   now_func->blocks.push_back(next_block);

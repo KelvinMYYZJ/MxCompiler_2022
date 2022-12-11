@@ -42,14 +42,14 @@ string IRPrinter::ToString(IRBuffer *IR_buffer) {
       "declare %struct.string* @toString(i32)\n"
       "declare %struct.string* @getString()\n"
       "declare i32 @getInt()\n"
-      "declare i32 @string_length(%struct.string*)\n"
-      "declare i32 @string_parseInt(%struct.string*)\n"
-      "declare i32 @string_ord(%struct.string*, i32)\n"
-      "declare %struct.string* @string_substring(%struct.string*, i32, i32)\n"
-      "declare i1 @_string_lt(%struct.string*, %struct.string*)\n"
-      "declare i1 @_string_le(%struct.string*, %struct.string*)\n"
-      "declare i1 @_string_eq(%struct.string*, %struct.string*)\n"
-      "declare i1 @_string_neq(%struct.string*, %struct.string*)\n"
+      "declare i32 @string.length(%struct.string*)\n"
+      "declare i32 @string.parseInt(%struct.string*)\n"
+      "declare i32 @string.ord(%struct.string*, i32)\n"
+      "declare %struct.string* @string.substring(%struct.string*, i32, i32)\n"
+      "declare i1 @_string.lt(%struct.string*, %struct.string*)\n"
+      "declare i1 @_string.le(%struct.string*, %struct.string*)\n"
+      "declare i1 @_string.eq(%struct.string*, %struct.string*)\n"
+      "declare i1 @_string.neq(%struct.string*, %struct.string*)\n"
       "declare %struct.string* @_string_add(%struct.string*, %struct.string*)\n";
   for (auto struct_info : IR_buffer->structs) {
     ret += ToString(struct_info.second.get()) + "\n";
