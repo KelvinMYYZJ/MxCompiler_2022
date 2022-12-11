@@ -234,7 +234,9 @@ void IRBuilder::Visit(shared_ptr<AST::StmtBlockNode> now) {
 void IRBuilder::Visit(shared_ptr<AST::IfStmtNode> now) {
   auto condition = Visit(now->condition_expr);
   auto then_block = MakeBlock();
+  then_block->comment = "if_then";
   auto next_block = MakeBlock(false);
+  next_block->comment = "if_next";
   bool br_to_next = false;
   if (now->have_else) {
     auto else_block = MakeBlock();
@@ -265,8 +267,11 @@ void IRBuilder::Visit(shared_ptr<AST::IfStmtNode> now) {
 
 void IRBuilder::Visit(shared_ptr<AST::WhileStmtNode> now) {
   auto condition_block = MakeBlock();
+  condition_block->comment = "while_condition";
   auto body_block = MakeBlock();
+  body_block->comment = "while_body";
   auto next_block = MakeBlock();
+  next_block->comment = "while_next";
   break_target.push(next_block);
   continue_target.push(condition_block);
   now_block->PushInstr(BrInstr(condition_block));
@@ -277,19 +282,25 @@ void IRBuilder::Visit(shared_ptr<AST::WhileStmtNode> now) {
   Visit(now->block);
   if (!now_block->closed) now_block->PushInstr(BrInstr(condition_block));
   now_block = next_block;
+  break_target.pop();
+  continue_target.pop();
 }
 void IRBuilder::Visit(shared_ptr<AST::ForStmtNode> now) {
   auto body_block = MakeBlock();
-  auto next_block = MakeBlock();
+  body_block->comment = "for_body";
+  auto next_block = MakeBlock(false);
+  next_block->comment = "for_next";
   if (now->have_init_expr) {
     Visit(now->init_expr);
   }
   break_target.push(next_block);
   if (now->have_condition_expr) {
     auto condition_block = MakeBlock();
+    condition_block->comment = "for_condition";
     shared_ptr<Block> step_block;
     if (now->have_step_expr) {
       step_block = MakeBlock();
+      step_block->comment = "for_step";
       continue_target.push(step_block);
     } else {
       continue_target.push(condition_block);
@@ -310,6 +321,7 @@ void IRBuilder::Visit(shared_ptr<AST::ForStmtNode> now) {
     shared_ptr<Block> step_block;
     if (now->have_step_expr) {
       step_block = MakeBlock();
+      step_block->comment = "for_step";
       continue_target.push(step_block);
     } else {
       continue_target.push(body_block);
@@ -326,6 +338,7 @@ void IRBuilder::Visit(shared_ptr<AST::ForStmtNode> now) {
   }
   break_target.pop();
   continue_target.pop();
+  now_func->blocks.push_back(next_block);
   now_block = next_block;
 }
 
@@ -918,7 +931,8 @@ Value IRBuilder::Visit(shared_ptr<AST::NewExprNode> now) {
     Value ret = IRType(now->type);
     int obj_size = result->structs[now->type.type_identifier]->size;
     Value tmp_malloc = kCharPtrIRType;
-    now_block->PushInstr(RegisterAssignInstr(tmp_malloc.reg, FuncCallExpr({obj_size}, "__Malloc_ptr", kCharPtrIRType)));
+    now_block->PushInstr(
+        RegisterAssignInstr(tmp_malloc.reg, FuncCallExpr({obj_size}, "__Malloc_bool", kCharPtrIRType)));
     // now_block->PushInstr(RegisterAssignInstr(ret, AllocaExpr(ret->type.Deref())));
     now_block->PushInstr(RegisterAssignInstr(ret.reg, BitcastExpr(tmp_malloc, ret.type)));
     now_block->PushInstr(
@@ -956,7 +970,7 @@ Value IRBuilder::Visit(shared_ptr<AST::LiteralNode> now) {
     auto literal_reg = result->string_literals[val];
     Value ret = kStringIRType;
     Value tmp_malloc = kCharPtrIRType;
-    now_block->PushInstr(RegisterAssignInstr(tmp_malloc.reg, FuncCallExpr({16}, "__Malloc_ptr", kCharPtrIRType)));
+    now_block->PushInstr(RegisterAssignInstr(tmp_malloc.reg, FuncCallExpr({16}, "__Malloc_bool", kCharPtrIRType)));
     now_block->PushInstr(RegisterAssignInstr(ret.reg, BitcastExpr(tmp_malloc, ret.type)));
     // now_block->PushInstr(RegisterAssignInstr(ret, AllocaExpr(kStringIRType.Deref())));
     auto val_ptr = VisitMemberVarible(ret, "string", "_val");

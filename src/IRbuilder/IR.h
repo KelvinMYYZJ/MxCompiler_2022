@@ -19,6 +19,7 @@ struct GlobalVarDef {
 struct Block {
   list<any> instrs;
   int label;
+  string comment;
   bool closed = false;
   void PushInstr(any instr);
 };

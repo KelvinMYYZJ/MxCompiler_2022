@@ -156,7 +156,7 @@ string IRPrinter::ToString(shared_ptr<Register> reg) {
 
 string IRPrinter::ToString(shared_ptr<Block> block) {
   string ret;
-  ret += "block" + to_string(block->label) + ":\n";
+  ret += "block" + to_string(block->label) + ": ;" + block->comment + "\n";
   for (auto instr : block->instrs) {
     if (AnyIs<StoreInstr>(instr)) {
       ret += ToString(AnyCast<StoreInstr>(instr)) + "\n";
