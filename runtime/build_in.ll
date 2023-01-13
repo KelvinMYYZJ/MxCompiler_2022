@@ -184,7 +184,7 @@ define %struct.string* @string.substring(%struct.string* %this, i32 %left, i32 %
 
 declare i32 @strcmp(i8*, i8*)
 
-define i1 @_string.lt(%struct.string* %lhs, %struct.string* %rhs){
+define i1 @string.lt(%struct.string* %lhs, %struct.string* %rhs){
   %lhs_val_ptr = getelementptr inbounds %struct.string, %struct.string* %lhs, i32 0, i32 0
   %lhs_val = load i8*, i8** %lhs_val_ptr
   %rhs_val_ptr = getelementptr inbounds %struct.string, %struct.string* %rhs, i32 0, i32 0
@@ -194,7 +194,7 @@ define i1 @_string.lt(%struct.string* %lhs, %struct.string* %rhs){
   ret i1 %ret
 }
 
-define i1 @_string.le(%struct.string* %lhs, %struct.string* %rhs){
+define i1 @string.le(%struct.string* %lhs, %struct.string* %rhs){
   %lhs_val_ptr = getelementptr inbounds %struct.string, %struct.string* %lhs, i32 0, i32 0
   %lhs_val = load i8*, i8** %lhs_val_ptr
   %rhs_val_ptr = getelementptr inbounds %struct.string, %struct.string* %rhs, i32 0, i32 0
@@ -204,7 +204,7 @@ define i1 @_string.le(%struct.string* %lhs, %struct.string* %rhs){
   ret i1 %ret
 }
 
-define i1 @_string.eq(%struct.string* %lhs, %struct.string* %rhs){
+define i1 @string.eq(%struct.string* %lhs, %struct.string* %rhs){
   %lhs_val_ptr = getelementptr inbounds %struct.string, %struct.string* %lhs, i32 0, i32 0
   %lhs_val = load i8*, i8** %lhs_val_ptr
   %rhs_val_ptr = getelementptr inbounds %struct.string, %struct.string* %rhs, i32 0, i32 0
@@ -214,7 +214,7 @@ define i1 @_string.eq(%struct.string* %lhs, %struct.string* %rhs){
   ret i1 %ret
 }
 
-define i1 @_string.neq(%struct.string* %lhs, %struct.string* %rhs){
+define i1 @string.neq(%struct.string* %lhs, %struct.string* %rhs){
   %lhs_val_ptr = getelementptr inbounds %struct.string, %struct.string* %lhs, i32 0, i32 0
   %lhs_val = load i8*, i8** %lhs_val_ptr
   %rhs_val_ptr = getelementptr inbounds %struct.string, %struct.string* %rhs, i32 0, i32 0
@@ -226,7 +226,7 @@ define i1 @_string.neq(%struct.string* %lhs, %struct.string* %rhs){
 
 @.str__string_add_format = global [5 x i8] c"%s%s\00"
 
-define %struct.string* @_string_add(%struct.string* %lhs, %struct.string* %rhs){
+define %struct.string* @string.add(%struct.string* %lhs, %struct.string* %rhs){
   %lhs_val_ptr = getelementptr inbounds %struct.string, %struct.string* %lhs, i32 0, i32 0
   %lhs_val = load i8*, i8** %lhs_val_ptr
   %lhs_size_ptr = getelementptr inbounds %struct.string, %struct.string* %lhs, i32 0, i32 1

@@ -46,11 +46,11 @@ string IRPrinter::ToString(IRBuffer *IR_buffer) {
       "declare i32 @string.parseInt(%struct.string*)\n"
       "declare i32 @string.ord(%struct.string*, i32)\n"
       "declare %struct.string* @string.substring(%struct.string*, i32, i32)\n"
-      "declare i1 @_string.lt(%struct.string*, %struct.string*)\n"
-      "declare i1 @_string.le(%struct.string*, %struct.string*)\n"
-      "declare i1 @_string.eq(%struct.string*, %struct.string*)\n"
-      "declare i1 @_string.neq(%struct.string*, %struct.string*)\n"
-      "declare %struct.string* @_string_add(%struct.string*, %struct.string*)\n";
+      "declare i1 @string.lt(%struct.string*, %struct.string*)\n"
+      "declare i1 @string.le(%struct.string*, %struct.string*)\n"
+      "declare i1 @string.eq(%struct.string*, %struct.string*)\n"
+      "declare i1 @string.neq(%struct.string*, %struct.string*)\n"
+      "declare %struct.string* @string.add(%struct.string*, %struct.string*)\n";
   for (auto struct_info : IR_buffer->structs) {
     ret += ToString(struct_info.second.get()) + "\n";
   }

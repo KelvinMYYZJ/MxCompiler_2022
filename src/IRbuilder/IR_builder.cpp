@@ -538,10 +538,10 @@ Value IRBuilder::Visit(shared_ptr<AST::EqualityExprNode> now) {
       string func_identifier;
       switch (op) {
         case IR::BinaryExpr::kEqual:
-          func_identifier = "_string.eq";
+          func_identifier = "string.eq";
           break;
         case IR::BinaryExpr::kNotequal:
-          func_identifier = "_string.neq";
+          func_identifier = "string.neq";
           break;
       }
       now_block->PushInstr(RegisterAssignInstr(new_reg.reg, FuncCallExpr(arg_list, func_identifier, kBoolIRType)));
@@ -586,22 +586,22 @@ Value IRBuilder::Visit(shared_ptr<AST::RelationExprNode> now) {
       string func_identifier;
       switch (op) {
         case IR::BinaryExpr::kLess:
-          func_identifier = "_string.lt";
+          func_identifier = "string.lt";
           arg_list.push_back(ret);
           arg_list.push_back(now_val);
           break;
         case IR::BinaryExpr::kLessEqual:
-          func_identifier = "_string.le";
+          func_identifier = "string.le";
           arg_list.push_back(ret);
           arg_list.push_back(now_val);
           break;
         case IR::BinaryExpr::kGreater:
-          func_identifier = "_string.lt";
+          func_identifier = "string.lt";
           arg_list.push_back(now_val);
           arg_list.push_back(ret);
           break;
         case IR::BinaryExpr::kGreaterEqual:
-          func_identifier = "_string.le";
+          func_identifier = "string.le";
           arg_list.push_back(now_val);
           arg_list.push_back(ret);
           break;
@@ -668,8 +668,7 @@ Value IRBuilder::Visit(shared_ptr<AST::AddExprNode> now) {
     }
     if (ret.type == kStringIRType) {
       new_reg = Value(kStringIRType);
-      now_block->PushInstr(
-          RegisterAssignInstr(new_reg.reg, FuncCallExpr({ret, now_val}, "_string_add", kStringIRType)));
+      now_block->PushInstr(RegisterAssignInstr(new_reg.reg, FuncCallExpr({ret, now_val}, "string.add", kStringIRType)));
     } else
       now_block->PushInstr(RegisterAssignInstr(new_reg.reg, BinaryExpr(ret, now_val, op, kIntIRType)));
     ret = new_reg;
