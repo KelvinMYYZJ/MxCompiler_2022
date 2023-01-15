@@ -2,6 +2,7 @@
 
 #include <string>
 
+#include "builtin.h"
 #include "instr.h"
 #include "my_any.hpp"
 #include "my_exception.h"
@@ -34,8 +35,10 @@ string AsmPrinter::ToString(IR::IRBuffer *ir_buffer) {
       now_offset += SizeOf(now_member_type);
     }
   }
-  string ret;
-  ret =
+  string ret = kBuiltinASM;
+  ret +=
+      "\n"
+      "\n"
       "\t.text\n"
       "\t.align 2\n"
       "\n";
