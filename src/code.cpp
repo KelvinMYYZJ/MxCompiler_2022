@@ -1,3 +1,4 @@
+#include <ios>
 #include <memory>
 
 #include "AST_nodes.h"
@@ -9,6 +10,7 @@
 #include "MxParserBaseListener.h"
 #include "antlr4-runtime.h"
 #include "asm_printer.h"
+#include "builtin.h"
 #include "gscope.h"
 #include "my_error_listener.h"
 #include "my_exception.h"
@@ -41,7 +43,12 @@ signed main() {
     ast_root->BuildScope(make_shared<GScope>());
     shared_ptr<IR::IRBuffer> IR_buffer = IRBuilder().BuildIR(ast_root);
     IRPrinter().Print(IR_buffer.get(), cerr);
-    AsmPrinter().Print(IR_buffer.get(), cout);
+    fstream builtin_file("builtin.s", ios::out);
+    builtin_file << kBuiltinASM;
+    builtin_file.close();
+    fstream tar_file("output.s", ios::out);
+    AsmPrinter().Print(IR_buffer.get(), tar_file);
+    tar_file.close();
   } catch (const MyException &exp) {
     cerr << "error!!" << endl << exp.What() << endl;
     return 1;

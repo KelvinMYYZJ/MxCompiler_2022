@@ -3,7 +3,7 @@ import sys
 import base64
 os.chdir(sys.path[0])
 
-builtin_file = "../../runtime/builtin.s"
+builtin_file = "../../runtime/builtin_ori.s"
 tar_file = "builtin.h"
 builtin_ctx = open(builtin_file, 'r').read()
 # print(builtin_ctx.encode())
