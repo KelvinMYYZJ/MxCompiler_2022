@@ -13,7 +13,8 @@ set(lib_dir_names
     AST
     scope
     semi
-    IRbuilder)
+    IRbuilder
+    Assembly)
 set(program_names code)
 
 # -----------------------------------------------------------------------------

@@ -8,3 +8,6 @@
 - [x] build-in functions
 - [x] class object
 - [x] pass test point
+
+# ASM
+- [ ]optimize build_in.s(using sx registers)

@@ -19,3 +19,6 @@ By Kelvin_MYYZJ
 The function `_Global_Init_()` is used to initalize all the global varibles and is called at the begining of `main()`
 A class `T` with a member function `func(arg0,arg1,...)` is called `T_func(arg_this,arg0,arg1...)`.
 The construct function of class `T` is called `T_Init_(arg_this)`
+
+### Assembly Design (only a draft now)
+- Without register allocation, which means I store all the virtual registers(including function arguments) on stack.
